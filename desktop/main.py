@@ -78,7 +78,7 @@ class Mansour(tk.Tk):
         if len(q) < 2: return self.write("عبارت جستجو باید حداقل دو حرف داشته باشد.")
         try:
             rows = self.conn.execute("""
-                SELECT s.name_fa, e.aya_from, e.aya_to, e.text_original
+                SELECT s.name_fa, e.sura, e.aya_from, e.aya_to, e.text_original
                 FROM tafsir_entries e JOIN tafsir_sources s ON s.id=e.source_id
                 WHERE e.text_original LIKE ? ESCAPE '\\' LIMIT ?
             """, ("%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%", MAX_ROWS)).fetchall()
@@ -87,7 +87,7 @@ class Mansour(tk.Tk):
             messagebox.showerror("خطا", str(exc))
     def show_rows(self, rows):
         if not rows: return self.write("موردی یافت نشد.")
-        self.write("\n\n".join(f"{name} — آیات {start} تا {end}\n{text}" for name, sura, start, end, text in rows))
+        self.write("\n\n".join(f"{name} — سوره {sura}، آیات {start} تا {end}\n{text}" for name, sura, start, end, text in rows))
 
 if __name__ == "__main__":
     Mansour().mainloop()
