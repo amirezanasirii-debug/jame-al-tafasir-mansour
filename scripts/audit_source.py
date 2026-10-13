@@ -109,6 +109,52 @@ def check_desktop(report: dict) -> None:
     }
 
 
+def check_release_configuration(report: dict) -> None:
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    package_version = str(package.get("version", ""))
+    android_gradle = (ROOT / "android/build.gradle.kts").read_text(encoding="utf-8")
+    version_name_match = re.search(r'\bversionName\s*=\s*"([^"]+)"', android_gradle)
+    version_code_match = re.search(r"\bversionCode\s*=\s*(\d+)", android_gradle)
+    android_version_name = version_name_match.group(1) if version_name_match else None
+    android_version_code = int(version_code_match.group(1)) if version_code_match else None
+
+    semantic_version = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", package_version)
+    expected_version_code = None
+    if semantic_version:
+        major, minor, patch = (int(part) for part in semantic_version.groups())
+        expected_version_code = major * 10000 + minor * 100 + patch
+
+    workflow_paths = sorted((ROOT / ".github/workflows").glob("*.yml"))
+    workflow_text = "\n".join(path.read_text(encoding="utf-8") for path in workflow_paths)
+    action_references = re.findall(r"^\s*uses:\s*([^@\s]+)@([^\s#]+)", workflow_text, re.MULTILINE)
+    unpinned_actions = [
+        f"{action}@{revision}"
+        for action, revision in action_references
+        if not action.startswith("./") and not re.fullmatch(r"[0-9a-f]{40}", revision)
+    ]
+    required_secret_names = {
+        "KEYSTORE_BASE64",
+        "KEYSTORE_PASSWORD",
+        "KEY_ALIAS",
+        "KEY_PASSWORD",
+        "WINDOWS_CSC_BASE64",
+        "WINDOWS_CSC_PASSWORD",
+    }
+    referenced_secret_names = set(re.findall(r"secrets\.([A-Z0-9_]+)", workflow_text))
+
+    report["release"] = {
+        "package_version": package_version,
+        "android_version_name": android_version_name,
+        "android_version_code": android_version_code,
+        "expected_android_version_code": expected_version_code,
+        "versions_match": package_version == android_version_name,
+        "version_code_matches": expected_version_code == android_version_code,
+        "workflow_files": [path.relative_to(ROOT).as_posix() for path in workflow_paths],
+        "unpinned_external_actions": unpinned_actions,
+        "missing_release_secret_references": sorted(required_secret_names - referenced_secret_names),
+    }
+
+
 def check_source_tree(report: dict) -> None:
     sensitive_files = []
     secret_hits = []
@@ -137,10 +183,12 @@ def main() -> int:
     check_quran(report)
     check_android(report)
     check_desktop(report)
+    check_release_configuration(report)
     check_source_tree(report)
     quran = report["quran"]
     android = report["android"]
     windows = report["windows"]
+    release = report["release"]
     tree = report["source_tree"]
     failures = []
     if not all((quran["surah_count"] == 114, quran["ayah_count"] == 6236, quran["surah_ids_1_to_114"], quran["ayah_ids_1_to_6236"], quran["per_surah_counts_match"])):
@@ -155,6 +203,12 @@ def main() -> int:
         failures.append("android_release_signing")
     if not all((windows["sandbox_enabled"], windows["context_isolation_enabled"], windows["node_integration_disabled"], windows["navigation_restricted"], windows["csp_present"])):
         failures.append("windows_web_security")
+    if not release["versions_match"] or not release["version_code_matches"]:
+        failures.append("release_version_mismatch")
+    if len(release["workflow_files"]) < 2 or release["unpinned_external_actions"]:
+        failures.append("release_workflow_supply_chain")
+    if release["missing_release_secret_references"]:
+        failures.append("release_signing_secrets")
     if tree["sensitive_files"] or tree["secret_pattern_hits"] or tree["forbidden_generated_cache_files"]:
         failures.append("source_tree_hygiene")
     report["result"] = "PASS" if not failures else "FAIL"
