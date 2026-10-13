@@ -1,0 +1,22 @@
+name: Windows development build
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev/2.5.0-foundation]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pyinstaller
+      - run: pyinstaller --onefile --windowed --name JameAlTafasirMansour-dev desktop/main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-dev-not-for-release
+          path: dist/JameAlTafasirMansour-dev.exe
+          if-no-files-found: error
