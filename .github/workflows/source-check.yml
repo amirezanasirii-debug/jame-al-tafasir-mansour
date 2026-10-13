@@ -1,0 +1,17 @@
+name: Source readiness check
+on:
+  push:
+    branches: [dev/2.5.0-foundation]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Android and Windows source presence
+        run: |
+          test -f app/build.gradle.kts || { echo 'Android source not yet committed'; exit 1; }
+          test -f desktop/main.py || { echo 'Windows source not yet committed'; exit 1; }
+          echo 'Sources present; compilation still required.'
