@@ -23,7 +23,7 @@
 ## پیش‌نیازها
 
 1. JDK 17 در `JAVA_HOME`.
-2. Android SDK 36 و Build Tools 36 در `ANDROID_HOME`.
+2. Android SDK Platform 37 و Build Tools 36.0.0 در `ANDROID_HOME`.
 3. Node.js و `pnpm` برای ساخت رابط.
 
 ساخت Debug هر سه کانال:
@@ -59,3 +59,6 @@ JAME_KEY_PASSWORD
 برای سازگاری با خروجی‌های قبلی، اسکریپت همچنین `JAME_SIGNING_DIR` را می‌پذیرد؛ این پوشه باید بیرون مخزن دارای `release.jks` و `password.txt` باشد. از همان کلید نسخه‌های قبلی برای همهٔ به‌روزرسانی‌ها استفاده کنید.
 
 اسکریپت پس از ساخت، امضای APK را با `apksigner` بررسی، اطلاعات بسته را با `aapt` چاپ و SHA-256 را محاسبه می‌کند. Release بدون تنظیم امضا عمداً متوقف می‌شود. R8 و حذف منابع بلااستفاده نیز برای Release فعال‌اند.
+
+راهنمای کامل تعریف GitHub Secrets، گواهی Windows و انتشار عمومی در
+[`GITHUB_RELEASE.md`](GITHUB_RELEASE.md) آمده است.
