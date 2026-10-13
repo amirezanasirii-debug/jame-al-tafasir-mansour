@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">جامع التفاسیر منصور</string>
+    <string name="webview_missing">برای اجرای برنامه، Android System WebView را نصب یا به‌روزرسانی کنید.</string>
+    <string name="webview_too_old">برای اجرای جامع التفاسیر منصور، Android System WebView یا Chrome را به نسخهٔ ۱۱۱ یا جدیدتر به‌روزرسانی کنید.</string>
+    <string name="browser_missing">مرورگری برای بازکردن منبع پیدا نشد</string>
+    <string name="page_open_failed">بازکردن صفحه ممکن نشد؛ برنامه را دوباره باز کنید.</string>
+</resources>
+

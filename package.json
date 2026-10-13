@@ -1,0 +1,75 @@
+{
+  "name": "jame-mansour-upgrade",
+  "version": "2.5.0",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build && node scripts/offline.mjs",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.js",
+    "start": "node scripts/serve.mjs",
+    "package:windows": "pnpm run build && electron-builder --win nsis --x64",
+    "package:android": "python scripts/build-android.py --flavor direct --build-type release",
+    "package:android:all": "python scripts/build-android.py --flavor all --build-type release",
+    "package:android:debug": "python scripts/build-android.py --flavor all --build-type debug"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.2.0"
+  },
+  "main": "desktop/main.cjs",
+  "description": "جامع التفاسیر منصور — قرآن، کتابخانه، واژه‌نامه و یادداشت‌ها",
+  "author": "حجت الاسلام امیررضا نصیری",
+  "build": {
+    "appId": "org.jamealtafasir.desktop",
+    "productName": "Jame al Tafasir Mansour",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "npmRebuild": false,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/app-icon.ico",
+      "signAndEditExecutable": true,
+      "artifactName": "Jame-al-Tafasir-Mansour-${version}-Windows-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "جامع التفاسیر منصور",
+      "uninstallDisplayName": "جامع التفاسیر منصور ${version}",
+      "runAfterFinish": false,
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "en_US"
+      ],
+      "displayLanguageSelector": false
+    },
+    "compression": "normal"
+  }
+}
