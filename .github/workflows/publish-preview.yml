@@ -1,0 +1,70 @@
+name: Publish 2.5.0 development preview
+on:
+  push:
+    branches: [dev/2.5.0-foundation]
+    paths:
+      - '.github/workflows/publish-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - run: gradle :app:assembleDebug --no-daemon
+      - run: |
+          mkdir -p preview/android
+          cp app/build/outputs/apk/debug/*.apk preview/android/Jame-al-Tafasir-Mansour-2.5.0-PREVIEW-Android-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-android
+          path: preview/android/*
+          if-no-files-found: error
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
+          python -m py_compile desktop/main.py
+          python -m unittest discover -s desktop -p 'test_*.py' -v
+      - run: pyinstaller --onefile --windowed --name Jame-al-Tafasir-Mansour-2.5.0-PREVIEW-Windows desktop/main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-windows
+          path: dist/*.exe
+          if-no-files-found: error
+  publish:
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: preview-*
+          merge-multiple: true
+          path: release
+      - name: Publish development prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cd release
+          sha256sum *.apk *.exe > SHA256SUMS.txt
+          gh release create v2.5.0-preview.1 *.apk *.exe SHA256SUMS.txt \
+            --target "${GITHUB_SHA}" \
+            --title "جامع‌التفاسیر منصور ۲.۵.۰ — نسخه آزمایشی" \
+            --notes "نسخه آزمایشی توسعه‌ای. Android APK از نوع debug و Windows EXE بدون امضای رسمی است. این نسخه جایگزین ۲.۴.۰ نیست؛ امکانات و داده‌های قرآنی/تفسیری کامل نیستند. نصب و ارتقا از نسخه قبلی هنوز تأیید نشده است. صرفاً برای ارزیابی و آزمایش." \
+            --prerelease
