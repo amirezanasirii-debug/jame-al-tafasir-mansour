@@ -64,7 +64,7 @@ class Mansour(tk.Tk):
             if not (1 <= sura <= 114 and 1 <= aya <= 286):
                 raise ValueError("شماره سوره یا آیه نامعتبر است.")
             rows = self.conn.execute("""
-                SELECT s.name_fa, e.aya_from, e.aya_to, e.text_original
+                SELECT s.name_fa, e.sura, e.aya_from, e.aya_to, e.text_original
                 FROM tafsir_entries e JOIN tafsir_sources s ON s.id=e.source_id
                 WHERE e.sura=? AND e.aya_from<=? AND e.aya_to>=?
                 LIMIT ?
@@ -80,14 +80,14 @@ class Mansour(tk.Tk):
             rows = self.conn.execute("""
                 SELECT s.name_fa, e.aya_from, e.aya_to, e.text_original
                 FROM tafsir_entries e JOIN tafsir_sources s ON s.id=e.source_id
-                WHERE e.text_original LIKE ? LIMIT ?
-            """, ("%" + q.replace("%", "\\%").replace("_", "\\_") + "%", MAX_ROWS)).fetchall()
+                WHERE e.text_original LIKE ? ESCAPE '\\' LIMIT ?
+            """, ("%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%", MAX_ROWS)).fetchall()
             self.show_rows(rows)
         except sqlite3.Error as exc:
             messagebox.showerror("خطا", str(exc))
     def show_rows(self, rows):
         if not rows: return self.write("موردی یافت نشد.")
-        self.write("\n\n".join(f"{name} — آیات {start} تا {end}\n{text}" for name, start, end, text in rows))
+        self.write("\n\n".join(f"{name} — آیات {start} تا {end}\n{text}" for name, sura, start, end, text in rows))
 
 if __name__ == "__main__":
     Mansour().mainloop()
