@@ -14,6 +14,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install pyinstaller
+      - name: Syntax and SQLite smoke tests
+        run: |
+          python -m py_compile desktop/main.py
+          python -c "import sqlite3; c=sqlite3.connect(':memory:'); c.execute('create virtual table t using fts5(text)'); c.execute('insert into t values (?)', ('test',)); assert c.execute('select count(*) from t where t match ?', ('test',)).fetchone()[0] == 1"
       - run: pyinstaller --onefile --windowed --name JameAlTafasirMansour-dev desktop/main.py
       - uses: actions/upload-artifact@v4
         with:
