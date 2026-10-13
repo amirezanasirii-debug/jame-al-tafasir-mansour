@@ -5,7 +5,7 @@
 - **Amiri / Amiri Quran 1.002** — SIL Open Font License 1.1 — منبع رسمی: <https://github.com/aliftype/amiri/releases/tag/1.002>
 - **Scheherazade New** — SIL Open Font License 1.1 — منبع رسمی: <https://software.sil.org/scheherazade/>
 - **Noto Naskh Arabic** — SIL Open Font License 1.1 — منبع رسمی: <https://github.com/notofonts/arabic>
-- **Vazirmatn** — SIL Open Font License 1.1 — منبع رسمی: <https://github.com/rastikerdar/vazirmatn>
+- **Vazirmatn 33.003 (variable)** — SIL Open Font License 1.1 — منبع رسمی: <https://github.com/rastikerdar/vazirmatn/releases/tag/v33.003> — SHA-256: `696249a2c74b39ffdef55de4df2809c5b639d3ff80d618d8160a095d2fd49dca`
 
 متن کامل مجوز OFL باید همراه بستهٔ انتشار نگه‌داری شود. فایل‌های فونت بدون تغییر نام تجاری یا دستکاری باینری در برنامه قرار گرفته‌اند.
 
