@@ -20,6 +20,16 @@ jobs:
           python -m unittest discover -s desktop -p 'test_*.py' -v
           python -c "import sqlite3; c=sqlite3.connect(':memory:'); c.execute('create virtual table t using fts5(text)'); c.execute('insert into t values (?)', ('test',)); assert c.execute('select count(*) from t where t match ?', ('test',)).fetchone()[0] == 1"
       - run: pyinstaller --onefile --windowed --name JameAlTafasirMansour-dev desktop/main.py
+      - name: Smoke test packaged EXE launches
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "dist/JameAlTafasirMansour-dev.exe").Path
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          if ($process.HasExited) {
+            throw "Windows executable exited unexpectedly with code $($process.ExitCode)"
+          }
+          Stop-Process -Id $process.Id -Force
       - uses: actions/upload-artifact@v4
         with:
           name: windows-dev-not-for-release
