@@ -18,3 +18,12 @@ No script performs bulk HTML scraping. A dua package must use schema
 require those fields as command-line arguments. Network-fetched content is not
 automatically accepted for public redistribution.
 
+## Authorized local tafsir import
+
+`import_installed_tafsir.py` reads the local search service without writing to
+the source installation and produces independent per-surah Gzip packs. It does
+not contain source-program keys. When the rights holder has authorized the
+operation, provide the AES material only to the current shell through
+`MANSOUR_SOURCE_AES_KEY_B64` and `MANSOUR_SOURCE_AES_IV_B64`; never commit these
+values. The generated manifest records title, author, publisher, coverage,
+size, and SHA-256 for every shard.

@@ -8,13 +8,22 @@ function restoreSelected(sources) {
   } catch { return sources[0]?.id || ''; }
 }
 
+function formatAddress(entry) {
+  const address = entry?.source_address?.[0];
+  if (!address) return '';
+  const pages = address.BookFromPage === address.BookToPage
+    ? `صفحهٔ ${Number(address.BookFromPage).toLocaleString('fa-IR')}`
+    : `صفحات ${Number(address.BookFromPage).toLocaleString('fa-IR')} تا ${Number(address.BookToPage).toLocaleString('fa-IR')}`;
+  return `جلد ${Number(address.Volume).toLocaleString('fa-IR')}، ${pages}`;
+}
+
 function TafsirColumn({source, ayah}) {
   const entry = source?.byAyah?.get(ayah.id);
   if (!source) return null;
   return <section className="verse-tafsir-column">
     <header><BookOpen /><div><strong>{source.title}</strong><span>{source.author}</span></div></header>
     {entry ? <article><p lang={source.language || 'ar'}>{entry.text}</p>{entry.footnotes && <small>{entry.footnotes}</small>}</article> : <div className="inline-state">برای این آیه مطلب مستقیمی ثبت نشده است.</div>}
-    <footer>{source.title} — {source.author} · {source.source_id}</footer>
+    <footer>{source.title} — {source.author} · {source.publisher || source.source_id || 'منبع همراه برنامه'}{formatAddress(entry) && ` · ${formatAddress(entry)}`}</footer>
   </section>;
 }
 
