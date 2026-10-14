@@ -27,10 +27,14 @@ test('main offline research flows render without runtime errors', async () => {
   assert(w.document.body.textContent.includes('این حمایت کاملاً اختیاری است'));
   click('تنظیمات'); await wait(() => w.document.body.textContent.includes('رسم‌الخط و اندازهٔ قرآن'));
   assert.equal(w.document.querySelectorAll('.font-picker [role="radio"]').length, 3);
-  click('مشابه‌یاب'); await wait(() => w.document.body.textContent.includes('محاسبهٔ مستقل روی متن قرآن'));
+  click('مشابه‌یاب'); await wait(() => w.document.body.textContent.includes('موتور مشابه‌یاب آیات جامع التفاسیر منصور'));
   assert(w.document.querySelector('.similarity-form textarea'));
-  click('احادیث مرتبط'); await wait(() => w.document.body.textContent.includes('هیچ بستهٔ حدیثی عمومی نصب نشده است'));
+  click('احادیث مرتبط'); await wait(() => w.document.body.textContent.includes('منابع حدیثی آفلاین جامع التفاسیر منصور'));
   assert(w.document.querySelector('.source-controls'));
+  click('فهرست منابع و مآخذ علمی برنامه'); await wait(() => w.document.querySelector('.bibliography-sheet[role="dialog"]'));
+  assert(w.document.body.textContent.includes('هنوز بستهٔ حدیثی نصب نشده است'));
+  w.document.querySelector('[aria-label="بستن فهرست مآخذ"]').click();
+  await wait(() => !w.document.querySelector('.bibliography-sheet'));
   click('یادداشت‌ها'); await wait(() => w.document.body.textContent.includes('یادداشت و پژوهش'));
   click('پژوهش تازه'); await wait(() => w.document.querySelector('.rich-editor'));
   assert(w.document.querySelector('[aria-label="قالب‌بندی متن"]'));

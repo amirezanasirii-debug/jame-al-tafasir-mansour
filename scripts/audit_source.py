@@ -30,6 +30,18 @@ SECRET_PATTERNS = {
     "github_token": re.compile(r"gh[pousr]_[A-Za-z0-9]{30,}"),
     "private_key": re.compile(r"BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY"),
 }
+FORBIDDEN_UI_BRAND_PATTERNS = {
+    "legacy_hadith_brand": re.compile(r"منابع حدیثی آفلاین نور"),
+    "legacy_similarity_brand": re.compile(r"داده(?:‌|\s)*های مشابه(?:‌|\s)*یاب جامع التفاسیر [۴4]"),
+    "legacy_product_name": re.compile(r"جامع التفاسیر [۴4]|(?:Jame|Jami)\s+Tafasir\s+4", re.IGNORECASE),
+    "legacy_vendor_name": re.compile(r"NoorSoft|مشکات(?:‌|-)?صوت|Meshkat", re.IGNORECASE),
+    "legacy_lexicon_brand": re.compile(r"برگرفته از منابع .*نور"),
+    "platform_marketing_copy": re.compile(r"نسخه.*ویندوز.*اندروید"),
+}
+UI_SOURCE_ROOTS = (
+    ROOT / "src",
+    ROOT / "android/src/main/res/values",
+)
 
 
 def sha256(path: Path) -> str:
@@ -178,6 +190,21 @@ def check_source_tree(report: dict) -> None:
     }
 
 
+def check_brand_sanitization(report: dict) -> None:
+    hits = []
+    for source_root in UI_SOURCE_ROOTS:
+        if not source_root.is_dir():
+            continue
+        for path in source_root.rglob("*"):
+            if not path.is_file() or path.suffix.lower() not in TEXT_SUFFIXES:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for name, pattern in FORBIDDEN_UI_BRAND_PATTERNS.items():
+                if pattern.search(text):
+                    hits.append({"file": path.relative_to(ROOT).as_posix(), "kind": name})
+    report["brand_sanitization"] = {"forbidden_ui_brand_hits": hits}
+
+
 def main() -> int:
     report = {"schema": "jame-mansour-source-audit", "version": 1}
     check_quran(report)
@@ -185,11 +212,13 @@ def main() -> int:
     check_desktop(report)
     check_release_configuration(report)
     check_source_tree(report)
+    check_brand_sanitization(report)
     quran = report["quran"]
     android = report["android"]
     windows = report["windows"]
     release = report["release"]
     tree = report["source_tree"]
+    branding = report["brand_sanitization"]
     failures = []
     if not all((quran["surah_count"] == 114, quran["ayah_count"] == 6236, quran["surah_ids_1_to_114"], quran["ayah_ids_1_to_6236"], quran["per_surah_counts_match"])):
         failures.append("quran_structure")
@@ -211,6 +240,8 @@ def main() -> int:
         failures.append("release_signing_secrets")
     if tree["sensitive_files"] or tree["secret_pattern_hits"] or tree["forbidden_generated_cache_files"]:
         failures.append("source_tree_hygiene")
+    if branding["forbidden_ui_brand_hits"]:
+        failures.append("forbidden_ui_branding")
     report["result"] = "PASS" if not failures else "FAIL"
     report["failures"] = failures
     print(json.dumps(report, ensure_ascii=False, indent=2))

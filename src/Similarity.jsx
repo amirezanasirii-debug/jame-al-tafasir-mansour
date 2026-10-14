@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {BookOpen, ChevronLeft, ScanSearch, Search, Sparkles} from 'lucide-react';
+import {BRAND_TEXT} from './brandText.js';
 
 const STOP_WORDS = new Set(['و', 'ف', 'ثم', 'او', 'بل', 'من', 'في', 'على', 'الى', 'عن', 'ما', 'لا', 'ان', 'إن', 'يا', 'هو', 'هي', 'هم']);
 
@@ -45,7 +46,7 @@ export default function Similarity({ayahs, surahMap, initialAyah, onOpenAyah, on
 
   return <div className="similarity-page">
     <header className="page-title"><span className="page-icon"><ScanSearch /></span><div><span>پژوهش در متن قرآن</span><h1>مشابه‌یاب آیات</h1><p>آیات نزدیک از نظر واژگان و ساختار متن را در کل قرآن پیدا کنید.</p></div></header>
-    <section className="similarity-hero"><Sparkles /><div><strong>محاسبهٔ مستقل روی متن قرآن</strong><p>رتبه‌بندی به‌صورت آفلاین انجام می‌شود و ادعای تفسیر معنایی یا ارتباط روایی ندارد.</p></div></section>
+    <section className="similarity-hero"><Sparkles /><div><strong>{BRAND_TEXT.similarityTitle}</strong><p>{BRAND_TEXT.similarityDescription}</p></div></section>
     <form className="similarity-form" onSubmit={submit}><label><Search /><textarea value={query} onChange={event => {setQuery(event.target.value); setSearched(false);}} placeholder="متن آیه یا عبارت عربی را وارد کنید…" /></label><button className="primary-button" type="submit" disabled={normalizeArabic(query).length < 3}><ScanSearch /> یافتن آیات مشابه</button></form>
     {searched && <div className="similarity-summary"><strong>{results.length.toLocaleString('fa-IR')}</strong> نتیجهٔ برتر برای مقایسه</div>}
     <div className="similarity-results">{results.map(ayah => <article key={ayah.id}><header><div><span className="mini-seal">{ayah.number.toLocaleString('fa-IR')}</span><div><strong>سوره {surahMap.get(ayah.surah_id)?.name_ar}</strong><small>آیهٔ {ayah.number.toLocaleString('fa-IR')}</small></div></div><em>{Math.round(ayah.score * 100).toLocaleString('fa-IR')}٪ شباهت</em></header><p lang="ar">{ayah.text_original}</p>{ayah.matched.length > 0 && <div className="matched-words">{ayah.matched.map(word => <span key={word}>{word}</span>)}</div>}<button onClick={() => onOpenAyah(ayah)}><BookOpen /> مطالعهٔ آیه <ChevronLeft /></button></article>)}</div>

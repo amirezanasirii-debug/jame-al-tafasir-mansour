@@ -127,6 +127,7 @@ function App() {
   const surahs = data?.surahs || [];
   const ayahs = data?.ayahs || [];
   const books = data?.books || [];
+  const sources = data?.sources || [];
   const surahMap = useMemo(() => new Map(surahs.map(surah => [surah.id, surah])), [surahs]);
   const ayahMap = useMemo(() => new Map(ayahs.map(ayah => [ayah.id, ayah])), [ayahs]);
   const versesBySurah = useMemo(() => {
@@ -302,7 +303,7 @@ function App() {
           {view === 'reader' && selected && <ReaderPage surahs={surahs} ayahs={ayahs} selected={selected} selectedVerses={selectedVerses} pageVerses={pageVerses} mushafPage={mushafPage} setMushafPage={setMushafPage} readerMode={readerMode} setReaderMode={setReaderMode} fontSize={fontSize} setFontSize={setFontSize} showTranslation={showTranslation} setShowTranslation={setShowTranslation} translations={translations} marks={marks} noteAyahIds={noteAyahIds} surahMap={surahMap} onSelectSurah={openSurah} onJump={jumpToVerse} onDetails={openDetails} onToggleMark={toggleMark} onCopy={copyVerse} onShare={shareVerse} onBack={() => navigate('quran')} />}
           {view === 'library' && <TafsirLibrary books={books} ayahMap={ayahMap} surahMap={surahMap} surahs={surahs} versesBySurah={versesBySurah} />}
           {view === 'similarity' && <Similarity ayahs={ayahs} surahMap={surahMap} initialAyah={similarityDraft} onDraftHandled={() => setSimilarityDraft(null)} onOpenAyah={ayah => jumpToVerse(ayah.surah_id, ayah.number)} />}
-          {view === 'hadith' && <RelatedHadith surahs={surahs} versesBySurah={versesBySurah} initialAyah={hadithDraft} onDraftHandled={() => setHadithDraft(null)} />}
+          {view === 'hadith' && <RelatedHadith surahs={surahs} versesBySurah={versesBySurah} sources={sources} initialAyah={hadithDraft} onDraftHandled={() => setHadithDraft(null)} />}
           {view === 'vocabulary' && <Vocabulary />}
           {view === 'notes' && <Notes notes={notes} setNotes={setNotes} initialDraft={noteDraft} onDraftHandled={() => setNoteDraft(null)} />}
           {view === 'saved' && <SavedPage verses={savedVerses} markCategories={markCategories} surahMap={surahMap} translations={translations} onCategory={updateMarkCategory} onOpen={ayah => jumpToVerse(ayah.surah_id, ayah.number)} />}
