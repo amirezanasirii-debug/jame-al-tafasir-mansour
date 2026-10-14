@@ -305,3 +305,285 @@ svg{width:20px;height:20px;stroke-width:1.8}
   .verse-tafsir-columns.compare { grid-template-columns: 1fr; }
   .tafsir-compare-controls { align-items: stretch; flex-direction: column; }
 }
+
+/* Mansour glass system — independent emerald/gold visual language */
+.app {
+  --bg: #07372d;
+  --surface: rgba(8, 61, 49, .74);
+  --surface-soft: rgba(255, 255, 255, .085);
+  --text: #fffaf0;
+  --muted: #c3d6cf;
+  --line: rgba(255, 240, 197, .24);
+  --green: #74d0ad;
+  --green-2: #96e4c7;
+  --green-soft: rgba(34, 141, 108, .2);
+  --gold: #f1c86e;
+  --gold-dark: #e7b94e;
+  --gold-soft: rgba(241, 200, 110, .15);
+  --shadow: 0 18px 50px rgba(0, 18, 13, .27), inset 0 1px 0 rgba(255, 255, 255, .08);
+  isolation: isolate;
+  background: #07372d;
+}
+.app.dark {
+  --bg: #031e19;
+  --surface: rgba(4, 42, 34, .8);
+  --surface-soft: rgba(255, 255, 255, .065);
+  --text: #fffaf0;
+  --muted: #adc8bf;
+  --line: rgba(247, 216, 144, .22);
+  --green: #80d8b6;
+  --green-2: #9fe7cb;
+  --green-soft: rgba(26, 123, 94, .2);
+  --gold: #f3ca70;
+  --gold-soft: rgba(243, 202, 112, .14);
+  --sidebar: #04271f;
+}
+.app::before {
+  content: '';
+  position: fixed;
+  z-index: -2;
+  inset: -32px;
+  background:
+    linear-gradient(145deg, rgba(1, 32, 25, .72), rgba(2, 64, 48, .48) 52%, rgba(1, 28, 22, .76)),
+    var(--app-backdrop) center 24% / cover no-repeat;
+  filter: saturate(1.16) blur(1.5px);
+  transform: scale(1.04);
+}
+.app::after {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 13% 17%, rgba(255, 220, 132, .18), transparent 22%),
+    radial-gradient(circle at 78% 12%, rgba(42, 201, 151, .13), transparent 24%),
+    radial-gradient(circle at 50% 95%, rgba(240, 188, 80, .11), transparent 28%);
+}
+.app-main { position: relative; z-index: 1; background: transparent; }
+.content { position: relative; }
+.app.native-shell .sidebar,
+.app.native-shell .topbar,
+.app.native-shell .mobile-nav,
+.app.native-shell .menu-backdrop { display: none !important; }
+.app.native-shell .app-main { margin-right: 0; }
+.app.native-shell .content { width: min(100% - 18px, 1240px); padding-top: 84px; padding-bottom: 108px; }
+.app.native-shell .search-overlay { inset: 80px 0 92px; }
+.sidebar,
+.topbar,
+.mobile-nav,
+.welcome-card,
+.stats-row,
+.home-section,
+.page-title,
+.research-toolbar,
+.list-tools label,
+.surah-card,
+.reader-heading,
+.reading-tools,
+.recitation-player,
+.verse-card,
+.settings-card,
+.about-card,
+.support-card,
+.library-banner,
+.book-card,
+.library-note,
+.source-reader-heading,
+.library-surah-picker,
+.library-search,
+.notes-list article,
+.note-editor,
+.similarity-hero,
+.similarity-form label,
+.similarity-results article,
+.hadith-source,
+.hadith-results article,
+.word-card,
+.saved-list > article,
+.search-results,
+  .bibliography-sheet {
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 18% 0, rgba(255, 232, 170, .12), transparent 34%),
+    linear-gradient(145deg, rgba(14, 89, 69, .52), rgba(4, 48, 39, .62));
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+  backdrop-filter: blur(24px) saturate(145%);
+}
+.sidebar {
+  background: linear-gradient(180deg, rgba(3, 51, 40, .88), rgba(2, 31, 25, .9));
+  border: 0;
+  border-left: 1px solid rgba(245, 212, 136, .22);
+  box-shadow: -12px 0 48px rgba(0, 18, 13, .28);
+}
+.topbar {
+  background: linear-gradient(180deg, rgba(4, 45, 36, .78), rgba(4, 45, 36, .58));
+  border-width: 0 0 1px;
+}
+.global-search,
+.round-button,
+.menu-button,
+.reader-view-switch,
+.continue-card,
+.popular-surahs button,
+.source-controls,
+.source-filter,
+.bookmark-categories button,
+.search-scope button,
+.tafsir-scroll-tabs button,
+.tafsir-compare-controls button,
+.tafsir-compare-controls select,
+.backup-actions .secondary-button {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(255, 255, 255, .075);
+  -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(13px);
+}
+.welcome-card {
+  background:
+    radial-gradient(circle at 84% 18%, rgba(255, 221, 142, .18), transparent 27%),
+    linear-gradient(135deg, rgba(3, 70, 54, .8), rgba(6, 46, 38, .76));
+  border-color: rgba(249, 214, 132, .42);
+  box-shadow: 0 24px 70px rgba(0, 22, 16, .34), inset 0 1px 0 rgba(255,255,255,.13);
+}
+.welcome-card h1,
+.page-title h1,
+.reader-heading h1,
+.section-heading h2,
+.settings-card h2,
+.about-card h2 { color: #fffaf0; }
+.welcome-card h1 b { display: inline-block; color: var(--gold); font-weight: 900; text-shadow: 0 5px 22px rgba(232, 196, 106, .22); }
+.welcome-card p,
+.page-title p { color: #c9ddd6; }
+.page-title { padding: 17px 20px; border-radius: 21px; }
+.page-icon,
+.surah-seal,
+.mini-seal {
+  color: var(--gold);
+  background: radial-gradient(circle, rgba(244, 204, 111, .2), rgba(8, 74, 57, .32));
+  border: 1px solid rgba(244, 204, 111, .28);
+}
+.primary-button,
+.welcome-actions .primary-button,
+.text-mode-button {
+  color: #123c30;
+  border-color: #f1cb78;
+  background: linear-gradient(135deg, #ffe9a4, #d5a73e);
+  box-shadow: 0 8px 24px rgba(238, 192, 90, .2), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.main-nav button.active,
+.about-link.active,
+.mobile-nav button.active {
+  color: #ffe39a;
+  background: linear-gradient(90deg, rgba(240, 196, 91, .2), rgba(255,255,255,.07));
+  box-shadow: inset 0 0 0 1px rgba(255, 221, 139, .24), 0 7px 24px rgba(0,0,0,.12);
+}
+.mobile-nav {
+  margin: 0 10px calc(8px + env(safe-area-inset-bottom));
+  right: 0;
+  left: 0;
+  bottom: 0;
+  height: 76px;
+  border-radius: 25px;
+  border: 1px solid rgba(255, 232, 174, .34);
+  background: rgba(4, 55, 43, .78);
+}
+.quick-access-section { margin-top: 18px; }
+.quick-access-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 17px; }
+.quick-access-grid button {
+  min-height: 86px;
+  border: 1px solid rgba(255, 229, 164, .24);
+  border-radius: 17px;
+  color: var(--text);
+  background: linear-gradient(145deg, rgba(255,255,255,.105), rgba(255,255,255,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.11), 0 9px 25px rgba(0,18,13,.15);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.quick-access-grid button:hover { transform: translateY(-3px); border-color: rgba(255, 220, 136, .64); box-shadow: 0 14px 34px rgba(0,18,13,.24), 0 0 22px rgba(232,196,106,.08); }
+.quick-access-grid button svg { color: var(--gold); width: 25px; height: 25px; }
+.quick-access-grid button span { font-size: 10px; font-weight: 800; }
+.mushaf-paper,
+.source-ayah {
+  border-color: #e1bf69;
+  background: #fffbef;
+  color: #123d32;
+  box-shadow: 0 24px 60px rgba(0, 20, 14, .28), inset 0 0 48px rgba(213, 172, 69, .08);
+}
+.dark .mushaf-paper,
+.dark .source-ayah {
+  border-color: #8e7440;
+  background: #f8f1df;
+  color: #153b31;
+}
+.verse-tafsir-column,
+.panel-source,
+.tafsir-entry-list article,
+.rich-editor {
+  color: var(--text);
+  border-color: var(--line);
+  background: rgba(3, 43, 34, .94);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.verse-tafsir-column > header,
+.panel-source > header,
+.hadith-results article > header {
+  background: rgba(255,255,255,.055);
+}
+.book-card:hover,
+.surah-card:hover,
+.popular-surahs button:hover {
+  border-color: rgba(255, 218, 126, .68);
+  box-shadow: 0 18px 44px rgba(0, 20, 14, .3), 0 0 0 1px rgba(238, 191, 83, .11);
+}
+.book-spine { background: linear-gradient(180deg, #b88a31, #6f4d18); }
+.library-surah-picker {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0 0;
+  padding: 12px 15px;
+  border-radius: 16px;
+}
+.library-surah-picker > span { color: var(--gold); font-size: 11px; font-weight: 800; }
+.library-surah-picker select { min-height: 46px; border: 1px solid var(--line); border-radius: 11px; padding: 8px 12px; color: var(--text); background: rgba(2, 39, 31, .72); }
+.library-surah-picker small { color: var(--muted); font-size: 9px; }
+.loading-ring { display: inline-block; flex: 0 0 auto; }
+.tafsir-load-note { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: rgba(255,255,255,.05); font-size: 9px; }
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .sidebar,.topbar,.mobile-nav,.welcome-card,.stats-row,.home-section,.page-title,.research-toolbar,.surah-card,.verse-card,.settings-card,.book-card,.note-editor,.search-results { background: #0a493a; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 700px) {
+  .page-title { padding: 15px; }
+  .library-surah-picker { grid-template-columns: 1fr; }
+  .library-surah-picker small { line-height: 1.8; }
+  .home-page,
+  .welcome-card,
+  .welcome-copy,
+  .home-grid,
+  .home-grid > *,
+  .section-heading,
+  .section-heading > div { min-width: 0; max-width: 100%; }
+  .welcome-copy { width: 100%; flex: 1 1 100%; }
+  .welcome-card h1,
+  .welcome-card p,
+  .section-heading h2 { max-width: 100%; overflow-wrap: anywhere; }
+  .continue-card > span:nth-child(2) { min-width: 0; }
+  .quick-access-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .quick-access-grid { gap: 7px; }
+  .quick-access-grid button { min-height: 76px; border-radius: 15px; }
+}

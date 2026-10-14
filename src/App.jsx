@@ -14,6 +14,7 @@ import Support from './Support.jsx';
 import TafsirLibrary from './TafsirLibrary.jsx';
 import Vocabulary from './Vocabulary.jsx';
 import VerseTafsir from './VerseTafsir.jsx';
+import {loadOfflineTafsirBooksForSurah, loadOfflineTafsirManifest} from './offlineTafsir.js';
 import {highlightSearchRanges, normalizeSearch, searchQuran} from './verseSearch.js';
 import {createUserBackup, parseUserBackup} from './userBackup.js';
 
@@ -56,6 +57,7 @@ function useDebouncedValue(value, delay = 180) {
 }
 
 function App() {
+  const nativeShell = useMemo(() => new URLSearchParams(window.location.search).get('native-shell') === '1', []);
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState('');
   const [view, setView] = useState('home');
@@ -69,7 +71,7 @@ function App() {
     const stored = safeRead('jm-search-history', []);
     return Array.isArray(stored) ? stored.slice(0, 10) : [];
   });
-  const [dark, setDark] = useState(() => safeRead('jm-dark', false));
+  const [dark, setDark] = useState(() => safeRead('jm-dark', true));
   const [marks, setMarks] = useState(() => {
     const stored = safeRead('jm-marks', []);
     return Array.isArray(stored) ? stored : [];
@@ -96,12 +98,36 @@ function App() {
   const [sourceFilter, setSourceFilter] = useState('');
   const [toast, setToast] = useState('');
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [offlineTafsirSources, setOfflineTafsirSources] = useState([]);
+  const [offlineTafsirBooks, setOfflineTafsirBooks] = useState([]);
+  const [offlineTafsirState, setOfflineTafsirState] = useState('idle');
   const searchInput = useRef(null);
+
+  useEffect(() => {
+    if (!nativeShell) return undefined;
+    const navigateFromNative = next => {
+      if (navItems.some(item => item.id === next) || next === 'about') navigate(next);
+    };
+    window.mansourNativeNavigate = navigateFromNative;
+    window.mansourNativeSearch = value => setQuery(String(value || ''));
+    window.mansourNativeToggleTheme = () => setDark(value => !value);
+    return () => {
+      delete window.mansourNativeNavigate;
+      delete window.mansourNativeSearch;
+      delete window.mansourNativeToggleTheme;
+    };
+  }, [nativeShell]);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}content.json`)
       .then(response => { if (!response.ok) throw Error('داده‌های قرآن یافت نشد.'); return response.json(); })
       .then(setData).catch(error => setLoadError(error.message));
+  }, []);
+
+  useEffect(() => {
+    loadOfflineTafsirManifest()
+      .then(manifest => setOfflineTafsirSources(manifest.sources || []))
+      .catch(() => setOfflineTafsirSources([]));
   }, []);
 
   useEffect(() => {
@@ -183,9 +209,28 @@ function App() {
   const selectedVerses = versesBySurah.get(selected?.id) || [];
   const pageVerses = versesByPage.get(mushafPage) || [];
   const activeAyah = ayahMap.get(activeAyahId);
+
+  useEffect(() => {
+    if (!activeAyah?.surah_id || !offlineTafsirSources.length) {
+      setOfflineTafsirBooks([]);
+      return undefined;
+    }
+    let cancelled = false;
+    setOfflineTafsirState('loading');
+    loadOfflineTafsirBooksForSurah(activeAyah.surah_id, offlineTafsirSources)
+      .then(loaded => {
+        if (cancelled) return;
+        setOfflineTafsirBooks(loaded);
+        setOfflineTafsirState('ready');
+      })
+      .catch(() => {
+        if (!cancelled) setOfflineTafsirState('error');
+      });
+    return () => { cancelled = true; };
+  }, [activeAyah?.surah_id, offlineTafsirSources]);
   const savedVerses = marks.map(id => ayahMap.get(id)).filter(Boolean);
   const noteAyahIds = useMemo(() => new Set(notes.map(note => Number(note.ayahId)).filter(Boolean)), [notes]);
-  const activeSources = entriesByBook.filter(book => {
+  const activeSources = [...entriesByBook, ...offlineTafsirBooks].filter(book => {
     const expectedKind = detailTab === 'translation' ? 'translation' : 'tafsir';
     return book.kind === expectedKind && book.byAyah.has(activeAyahId)
       && (!sourceFilter || normalizeSearch(book.title).includes(normalizeSearch(sourceFilter)));
@@ -275,7 +320,7 @@ function App() {
   if (!data) return <main className="loading-screen"><img src={`${import.meta.env.BASE_URL}icon-144.png`} alt="" /><div className="loading-ring" /><p>در حال آماده‌سازی کتابخانه…</p></main>;
 
   return (
-    <div className={`app ${dark ? 'dark' : 'light'}`} dir="rtl" style={{'--quran-font-family': selectedQuranFont.family, '--quran-line-height': selectedQuranFont.lineHeight}}>
+    <div className={`app ${dark ? 'dark' : 'light'} ${nativeShell ? 'native-shell' : ''}`} dir="rtl" style={{'--quran-font-family': selectedQuranFont.family, '--quran-line-height': selectedQuranFont.lineHeight, '--app-backdrop': `url(${import.meta.env.BASE_URL}app-icon-master.png)`}}>
       <aside className={`sidebar ${mobileMenu ? 'mobile-open' : ''}`} aria-label="ناوبری اصلی">
         <div className="brand">
           <img src={`${import.meta.env.BASE_URL}icon-144.png`} alt="نشان جامع التفاسیر منصور" />
@@ -292,7 +337,7 @@ function App() {
         </nav>
         <div className="sidebar-card"><Sparkles /><strong>کتابخانهٔ پژوهشی</strong><p>قرآن، تفاسیر، واژه‌نامه و یادداشت‌های شخصی در یک محیط.</p></div>
         <button className={`about-link ${view === 'about' ? 'active' : ''}`} onClick={() => navigate('about')}><Info /> درباره برنامه</button>
-        <small className="version">نسخهٔ ۲.۴</small>
+        <small className="version">نسخهٔ ۲.۶</small>
       </aside>
       {mobileMenu && <button className="menu-backdrop" onClick={() => setMobileMenu(false)} aria-label="بستن فهرست" />}
 
@@ -311,7 +356,7 @@ function App() {
           {view === 'home' && <HomePage surahs={surahs} last={last} marks={marks} surahMap={surahMap} onNavigate={navigate} onOpenSurah={openSurah} />}
           {view === 'quran' && <QuranPage surahs={surahs} versesBySurah={versesBySurah} ayahs={ayahs} onOpenSurah={openSurah} />}
           {view === 'reader' && selected && <ReaderPage surahs={surahs} ayahs={ayahs} selected={selected} selectedVerses={selectedVerses} pageVerses={pageVerses} mushafPage={mushafPage} setMushafPage={setMushafPage} readerMode={readerMode} setReaderMode={setReaderMode} fontSize={fontSize} setFontSize={setFontSize} showTranslation={showTranslation} setShowTranslation={setShowTranslation} translations={translations} marks={marks} noteAyahIds={noteAyahIds} surahMap={surahMap} onSelectSurah={openSurah} onJump={jumpToVerse} onDetails={openDetails} onToggleMark={toggleMark} onCopy={copyVerse} onShare={shareVerse} onBack={() => navigate('quran')} />}
-          {view === 'library' && <TafsirLibrary books={books} ayahMap={ayahMap} surahMap={surahMap} surahs={surahs} versesBySurah={versesBySurah} />}
+          {view === 'library' && <TafsirLibrary books={books} offlineSources={offlineTafsirSources} ayahMap={ayahMap} surahMap={surahMap} surahs={surahs} versesBySurah={versesBySurah} />}
           {view === 'similarity' && <Similarity ayahs={ayahs} surahMap={surahMap} initialAyah={similarityDraft} onDraftHandled={() => setSimilarityDraft(null)} onOpenAyah={ayah => jumpToVerse(ayah.surah_id, ayah.number)} />}
           {view === 'hadith' && <RelatedHadith surahs={surahs} versesBySurah={versesBySurah} sources={sources} initialAyah={hadithDraft} onDraftHandled={() => setHadithDraft(null)} />}
           {view === 'vocabulary' && <Vocabulary />}
@@ -331,7 +376,7 @@ function App() {
         })}
       </nav>
 
-      {activeAyah && <VerseDetails ayah={activeAyah} surah={surahMap.get(activeAyah.surah_id)} tab={detailTab} setTab={setDetailTab} sources={activeSources} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter} marked={marks.includes(activeAyah.id)} onMark={() => toggleMark(activeAyah)} onCopy={() => copyVerse(activeAyah)} onNote={() => addNoteFromAyah(activeAyah)} onSimilarity={() => findSimilar(activeAyah)} onHadith={() => showRelatedHadith(activeAyah)} onClose={() => setActiveAyahId(null)} />}
+      {activeAyah && <VerseDetails ayah={activeAyah} surah={surahMap.get(activeAyah.surah_id)} tab={detailTab} setTab={setDetailTab} sources={activeSources} tafsirState={offlineTafsirState} sourceFilter={sourceFilter} setSourceFilter={setSourceFilter} marked={marks.includes(activeAyah.id)} onMark={() => toggleMark(activeAyah)} onCopy={() => copyVerse(activeAyah)} onNote={() => addNoteFromAyah(activeAyah)} onSimilarity={() => findSimilar(activeAyah)} onHadith={() => showRelatedHadith(activeAyah)} onClose={() => setActiveAyahId(null)} />}
       {toast && <div className="toast" role="status"><Check />{toast}</div>}
     </div>
   );
@@ -340,9 +385,17 @@ function App() {
 function HomePage({surahs, last, marks, surahMap, onNavigate, onOpenSurah}) {
   const popular = [1, 2, 18, 36, 55, 67, 112].map(id => surahs.find(surah => surah.id === id)).filter(Boolean);
   const lastSurah = last ? surahMap.get(last.surah) : null;
+  const quickAccess = [
+    {id: 'quran', label: 'قرآن کریم', icon: BookOpen},
+    {id: 'library', label: 'کتابخانه', icon: Library},
+    {id: 'similarity', label: 'آیات مشابه', icon: ScanSearch},
+    {id: 'hadith', label: 'احادیث مرتبط', icon: Quote},
+    {id: 'vocabulary', label: 'واژه‌نامه', icon: Languages},
+    {id: 'notes', label: 'یادداشت‌ها', icon: NotebookPen},
+  ];
   return <div className="home-page">
     <section className="welcome-card">
-      <div className="welcome-copy"><span className="eyebrow"><Sparkles /> به نام خداوند بخشندهٔ مهربان</span><h1>قرآن و تفسیر، در یک فضای آرام برای مطالعه</h1><p>متن کامل قرآن، ترجمه، تفاسیر، واژه‌نامه و یادداشت‌های پژوهشی؛ سریع و همراه با ارجاع دقیق منابع.</p><div className="welcome-actions"><button className="primary-button" onClick={() => onNavigate('quran')}><BookOpen /> آغاز مطالعه</button><button className="secondary-button" onClick={() => onNavigate('library')}><Library /> ورود به کتابخانه</button></div></div>
+      <div className="welcome-copy"><span className="eyebrow"><Sparkles /> آغاز سفر پژوهشی در معانی قرآن</span><h1>جامع التفاسیر <b>منصور</b></h1><p>مرجع آفلاین قرآن، ترجمه و تفاسیر منتخب؛ برای مطالعهٔ آرام، پژوهش دقیق و یادداشت‌برداری شخصی.</p><div className="welcome-actions"><button className="primary-button" onClick={() => onNavigate('quran')}><BookOpen /> آغاز مطالعه</button><button className="secondary-button" onClick={() => onNavigate('library')}><Library /> ورود به کتابخانه</button></div></div>
       <div className="quran-emblem" aria-hidden="true"><span>القرآن</span><small>الکریم</small></div>
     </section>
     <section className="stats-row" aria-label="آمار کتابخانه"><div><strong>۱۱۴</strong><span>سوره</span></div><div><strong>۶٬۲۳۶</strong><span>آیه</span></div><div><strong>۱۶٬۳۵۱</strong><span>مدخل واژه‌نامه</span></div><div><strong>{fa(marks.length)}</strong><span>نشان ذخیره‌شده</span></div></section>
@@ -350,6 +403,7 @@ function HomePage({surahs, last, marks, surahMap, onNavigate, onOpenSurah}) {
       <section className="home-section continue-section"><div className="section-heading"><div><span>مسیر مطالعه</span><h2>ادامه از آخرین مطالعه</h2></div><BookHeart /></div>{lastSurah ? <button className="continue-card" onClick={() => onOpenSurah(lastSurah, last.verse)}><span className="surah-seal">{fa(lastSurah.id)}</span><span><small>سوره</small><strong>{lastSurah.name_ar}</strong><em>آیهٔ {fa(last.verse)}</em></span><ChevronLeft /></button> : <button className="continue-card empty-continue" onClick={() => onOpenSurah(surahs[0])}><span className="surah-seal">۱</span><span><small>شروع مطالعه</small><strong>سوره الفاتحة</strong><em>نخستین آیه</em></span><ChevronLeft /></button>}</section>
       <section className="home-section research-section"><div className="section-heading"><div><span>فضای پژوهش</span><h2>منبع را گم نکنید</h2></div><FileText /></div><p>ترجمه و تفسیر هر آیه همراه نام اثر، مؤلف و شناسهٔ منبع نمایش داده می‌شود. بسته‌های بدون شناسنامه وارد نسخهٔ عمومی نمی‌شوند.</p><button onClick={() => onNavigate('library')}>ورود به کتابخانه <ArrowLeft /></button></section>
     </div>
+    <section className="home-section quick-access-section"><div className="section-heading"><div><span>دسترسی سریع</span><h2>ابزارهای مطالعه و پژوهش</h2></div><Sparkles /></div><div className="quick-access-grid">{quickAccess.map(item => { const Icon = item.icon; return <button key={item.id} onClick={() => onNavigate(item.id)}><Icon /><span>{item.label}</span></button>; })}</div></section>
     <section className="home-section popular-section"><div className="section-heading"><div><span>دسترسی سریع</span><h2>سوره‌های منتخب</h2></div><button onClick={() => onNavigate('quran')}>فهرست سوره‌ها <ChevronLeft /></button></div><div className="popular-surahs">{popular.map(surah => <button key={surah.id} onClick={() => onOpenSurah(surah)}><span>{fa(surah.id)}</span><strong>{surah.name_ar}</strong><small>{fa(surah.ayah_count)} آیه</small></button>)}</div></section>
   </div>;
 }
@@ -410,11 +464,11 @@ function ReaderPage(props) {
   </div>;
 }
 
-function VerseDetails({ayah, surah, tab, setTab, sources, sourceFilter, setSourceFilter, marked, onMark, onCopy, onNote, onSimilarity, onHadith, onClose}) {
+function VerseDetails({ayah, surah, tab, setTab, sources, tafsirState, sourceFilter, setSourceFilter, marked, onMark, onCopy, onNote, onSimilarity, onHadith, onClose}) {
   return <div className="details-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><aside className="verse-details" role="dialog" aria-modal="true" aria-label="ترجمه و تفسیر آیه">
     <header className="details-header"><div><span>سوره {surah?.name_ar}</span><h2>آیهٔ {fa(ayah.number)}</h2></div><div><button onClick={onNote} aria-label="یادداشت برای آیه"><NotebookPen /></button><button onClick={onCopy} aria-label="کپی"><Copy /></button><button onClick={onMark} className={marked ? 'marked' : ''} aria-label="نشان‌گذاری"><Bookmark fill={marked ? 'currentColor' : 'none'} /></button><button onClick={onClose} aria-label="بستن"><X /></button></div></header>
     <p className="details-arabic">{ayah.text_original}</p><div className="verse-research-actions"><button onClick={onNote}><NotebookPen /> افزودن آیه و ترجمه به پژوهش</button><button onClick={onSimilarity}><ScanSearch /> یافتن آیات مشابه</button><button onClick={onHadith}><Quote /> احادیث مرتبط</button></div><div className="source-tabs"><button className={tab === 'translation' ? 'active' : ''} onClick={() => setTab('translation')}>ترجمه</button><button className={tab === 'tafsir' ? 'active' : ''} onClick={() => setTab('tafsir')}>تفسیر</button></div>
-    {tab === 'tafsir' ? <VerseTafsir ayah={ayah} sources={sources} /> : <><label className="source-filter"><Search /><input value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} placeholder="فیلتر نام منبع" /></label><div className="source-count">{fa(sources.length)} منبع برای این آیه</div>{sources.length ? sources.map(source => {const entry = source.byAyah.get(ayah.id); return <article className="panel-source" key={source.id}><header><div><strong>{source.title}</strong><span>{source.author || 'منبع همراه برنامه'}</span></div><small>{source.language === 'ar' ? 'عربی' : 'فارسی'}</small></header><p lang={source.language}>{entry.text}</p>{entry.footnotes && <footer>{entry.footnotes}</footer>}</article>;}) : <div className="empty-state">منبعی با این مشخصات پیدا نشد.</div>}</>}
+    {tab === 'tafsir' ? <>{tafsirState === 'loading' && <div className="tafsir-load-note"><span className="loading-ring" /> بسته‌های تکمیلی آفلاین در حال بازشدن هستند.</div>}{tafsirState === 'error' && !sources.length ? <div className="inline-state error">بستهٔ آفلاین این سوره باز نشد.</div> : <VerseTafsir ayah={ayah} sources={sources} />}</> : <><label className="source-filter"><Search /><input value={sourceFilter} onChange={event => setSourceFilter(event.target.value)} placeholder="فیلتر نام منبع" /></label><div className="source-count">{fa(sources.length)} منبع برای این آیه</div>{sources.length ? sources.map(source => {const entry = source.byAyah.get(ayah.id); return <article className="panel-source" key={source.id}><header><div><strong>{source.title}</strong><span>{source.author || 'منبع همراه برنامه'}</span></div><small>{source.language === 'ar' ? 'عربی' : 'فارسی'}</small></header><p lang={source.language}>{entry.text}</p>{entry.footnotes && <footer>{entry.footnotes}</footer>}</article>;}) : <div className="empty-state">منبعی با این مشخصات پیدا نشد.</div>}</>}
   </aside></div>;
 }
 

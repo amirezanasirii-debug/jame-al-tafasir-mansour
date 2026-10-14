@@ -1,7 +1,6 @@
 package org.jamealtafasir.mobile;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -24,6 +23,10 @@ import android.widget.Toast;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
+import androidx.activity.ComponentActivity;
+
+import org.jamealtafasir.mobile.ui.MansourShellHost;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,7 +38,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class MainActivity extends Activity {
+public final class MainActivity extends ComponentActivity {
     private static final String APP_HOST = "app.jame.invalid";
     private static final Pattern CHROME_VERSION = Pattern.compile("Chrome/(\\d+)");
     private static final Set<String> ALLOWED_EXTERNAL_URLS = new HashSet<>(Arrays.asList(
@@ -76,8 +79,8 @@ public final class MainActivity extends Activity {
             return;
         }
         registerPredictiveBackCallback();
-        frame.addView(webView, new FrameLayout.LayoutParams(-1, -1));
-        webView.loadUrl("https://" + APP_HOST + "/index.html");
+        MansourShellHost.install(this, frame, webView);
+        webView.loadUrl("https://" + APP_HOST + "/index.html?native-shell=1");
         frame.requestApplyInsets();
     }
 
@@ -106,6 +109,7 @@ public final class MainActivity extends Activity {
                 userAgent + " JameAndroid/" + BuildConfig.VERSION_NAME
                         + " (" + BuildConfig.DISTRIBUTION_CHANNEL + ")"
         );
+        target.setBackgroundColor(Color.TRANSPARENT);
 
         CookieManager.getInstance().setAcceptCookie(false);
         WebView.setWebContentsDebuggingEnabled(false);
