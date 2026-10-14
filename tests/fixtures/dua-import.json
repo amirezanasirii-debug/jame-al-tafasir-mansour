@@ -1,0 +1,21 @@
+{
+  "schema": "jame-mansour-dua",
+  "version": 1,
+  "id": "test-only",
+  "title_fa": "دادهٔ ساختگی ویژهٔ آزمون",
+  "title_ar": "بيانات اختبار فقط",
+  "source": {
+    "url": "https://example.invalid/test-fixture",
+    "license_name": "TEST FIXTURE — NOT FOR RELEASE",
+    "license_url": "https://example.invalid/test-fixture-license",
+    "version": "1",
+    "retrieved_at": "2026-10-14"
+  },
+  "verses": [
+    {
+      "verse_number": 1,
+      "arabic": "نص اختباري غير ديني",
+      "persian": "متن ساختگی غیردینی برای آزمون"
+    }
+  ]
+}
