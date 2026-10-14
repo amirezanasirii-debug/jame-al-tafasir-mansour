@@ -26,7 +26,7 @@ test('main offline research flows render without runtime errors', async () => {
   click('حمایت از توسعه'); await wait(() => w.document.body.textContent.includes('۵۰۲۲'));
   assert(w.document.body.textContent.includes('این حمایت کاملاً اختیاری است'));
   click('تنظیمات'); await wait(() => w.document.body.textContent.includes('رسم‌الخط و اندازهٔ قرآن'));
-  assert.equal(w.document.querySelectorAll('.font-picker [role="radio"]').length, 3);
+  assert.equal(w.document.querySelectorAll('.font-picker [role="radio"]').length, 5);
   click('مشابه‌یاب'); await wait(() => w.document.body.textContent.includes('موتور مشابه‌یاب آیات جامع التفاسیر منصور'));
   assert(w.document.querySelector('.similarity-form textarea'));
   click('احادیث مرتبط'); await wait(() => w.document.body.textContent.includes('منابع حدیثی آفلاین جامع التفاسیر منصور'));

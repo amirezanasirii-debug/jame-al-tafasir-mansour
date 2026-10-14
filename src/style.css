@@ -57,7 +57,10 @@ svg{width:20px;height:20px;stroke-width:1.8}
 .search-results section h3{font-size:11px;color:var(--muted);padding:5px 9px;margin:14px 0 3px}
 .search-row,.direct-result{width:100%;border:0;background:transparent;color:var(--text);display:flex;align-items:center;gap:11px;text-align:right;border-radius:12px;padding:10px;transition:.15s}
 .search-row:hover{background:var(--surface-soft)}.search-row>span:nth-child(2){flex:1;min-width:0}.search-row strong,.search-row small{display:block}.search-row strong{font-size:13px}.search-row small{margin-top:4px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px}
+.search-row mark{background:color-mix(in srgb,var(--gold) 38%,transparent);color:inherit;border-radius:3px;padding:0 2px}
 .mini-seal{display:grid;place-items:center;width:37px;height:37px;flex:0 0 auto;border-radius:11px;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:800}
+.saved-search{width:min(520px,100%);display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:11px 14px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--muted)}
+.saved-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text)}
 .direct-result{margin:10px 0;background:var(--green-soft);border:1px solid color-mix(in srgb,var(--green) 18%,var(--line))}.direct-result span{color:var(--green);font-size:10px}.direct-result strong{flex:1}
 
 /* Shared components */

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import {strict as assert} from 'node:assert';
-import {resolveVerseReference, searchQuran, normalizeSearch} from '../src/verseSearch.js';
+import {highlightSearchRanges, resolveVerseReference, searchQuran, normalizeSearch} from '../src/verseSearch.js';
 
 const surahs = [
   {id: 2, name_ar: 'البقرة', ayah_count: 286},
@@ -39,4 +39,22 @@ test('surah name search with and without ال', () => {
 
 test('normalizeSearch removes Quranic marks', () => {
   assert.equal(normalizeSearch('بِسْمِ ٱللَّهِ'), normalizeSearch('بسم الله'));
+});
+
+test('search highlight maps a normalized query back to diacritized display text', () => {
+  const text = 'بِسْمِ ٱللَّهِ الرَّحْمَٰنِ';
+  const ranges = highlightSearchRanges(text, 'الله الرحمن');
+  assert.equal(ranges.length, 2);
+  assert.match(text.slice(...ranges[0]), /ٱللَّهِ/);
+  assert.match(text.slice(...ranges[1]), /الرَّحْمَٰنِ/);
+});
+
+test('search result reports the matching installed source and excerpt', () => {
+  const ayahs = [{
+    id: 1, surah_id: 2, number: 255, text_original: 'اللَّهُ', searchText: normalizeSearch('متن تفسیر'),
+    searchFragments: [{kind: 'tafsir', label: 'تفسیر آزمایشی', text: 'متن تفسیر'}],
+  }];
+  const result = searchQuran('تفسیر', surahs, ayahs, new Map());
+  assert.equal(result.matchingAyahs[0].matchedSource, 'تفسیر آزمایشی');
+  assert.equal(result.matchingAyahs[0].matchPreview, 'متن تفسیر');
 });

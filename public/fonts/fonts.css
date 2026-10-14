@@ -33,3 +33,18 @@
   font-display: swap;
   src: url(./Vazirmatn-Variable.ttf) format('truetype-variations');
 }
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./Lateef-Regular.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  font-style: normal;
+  font-weight: 100 900;
+  font-stretch: 62.5% 100%;
+  font-display: swap;
+  src: url(./NotoSansArabic.ttf) format('truetype-variations');
+}

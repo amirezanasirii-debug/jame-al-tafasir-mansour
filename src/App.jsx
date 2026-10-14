@@ -1,4 +1,4 @@
-import React, {useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ArrowLeft, ArrowRight, BookHeart, BookOpen, Bookmark, Check, ChevronLeft, Copy,
   FileText, Home, Info, Languages, Library, Menu, Minus, Moon, PanelRightClose,
@@ -14,7 +14,7 @@ import Support from './Support.jsx';
 import TafsirLibrary from './TafsirLibrary.jsx';
 import Vocabulary from './Vocabulary.jsx';
 import VerseTafsir from './VerseTafsir.jsx';
-import {normalizeSearch, searchQuran} from './verseSearch.js';
+import {highlightSearchRanges, normalizeSearch, searchQuran} from './verseSearch.js';
 import {createUserBackup, parseUserBackup} from './userBackup.js';
 
 const navItems = [
@@ -33,6 +33,8 @@ const QURAN_FONTS = [
   {id: 'amiri-quran', label: 'امیری قرآن', family: "'Amiri Quran', 'Amiri', serif", lineHeight: 2.45},
   {id: 'scheherazade', label: 'شهرزاد نو', family: "'Scheherazade New', 'Amiri', serif", lineHeight: 2.35},
   {id: 'noto-naskh', label: 'نوتو نسخ عربی', family: "'Noto Naskh Arabic', 'Amiri', serif", lineHeight: 2.35},
+  {id: 'lateef', label: 'لطیف', family: "'Lateef', 'Amiri', serif", lineHeight: 2.5},
+  {id: 'noto-sans-arabic', label: 'نوتو سنس عربی', family: "'Noto Sans Arabic', sans-serif", lineHeight: 2.25},
 ];
 const SEARCH_SCOPES = [
   {id: 'all', label: 'همه'}, {id: 'quran', label: 'قرآن'},
@@ -43,6 +45,15 @@ const safeRead = (key, fallback) => {
 };
 const fa = value => Number(value || 0).toLocaleString('fa-IR');
 const escapeHtml = value => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function useDebouncedValue(value, delay = 180) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [delay, value]);
+  return debounced;
+}
 
 function App() {
   const [data, setData] = useState(null);
@@ -151,20 +162,19 @@ function App() {
     entriesByBook.filter(book => book.kind === 'translation').forEach(book => book.byAyah.forEach((entry, id) => map.set(id, entry.text)));
     return map;
   }, [entriesByBook]);
-  const tafsirSearchText = useMemo(() => {
-    const map = new Map();
-    entriesByBook.filter(book => book.kind === 'tafsir').forEach(book => book.byAyah.forEach((entry, id) => map.set(id, `${map.get(id) || ''} ${entry.text}`)));
-    return map;
-  }, [entriesByBook]);
   const searchableAyahs = useMemo(() => ayahs.map(ayah => {
-    const parts = searchScope === 'quran' ? ayah.text_original
-      : searchScope === 'translation' ? translations.get(ayah.id) || ''
-        : searchScope === 'tafsir' ? tafsirSearchText.get(ayah.id) || ''
-          : `${ayah.text_original} ${translations.get(ayah.id) || ''} ${tafsirSearchText.get(ayah.id) || ''}`;
+    const fragments = [
+      {kind: 'quran', label: 'قرآن', text: ayah.text_original},
+      ...entriesByBook.flatMap(book => {
+        const entry = book.byAyah.get(ayah.id);
+        return entry ? [{kind: book.kind, label: book.title, text: entry.text}] : [];
+      }),
+    ].filter(fragment => searchScope === 'all' || fragment.kind === searchScope);
+    const parts = fragments.map(fragment => fragment.text).join(' ');
     const searchText = normalizeSearch(parts);
-    return {...ayah, searchText, searchCompact: searchText.replace(/\s/g, ''), matchedSource: searchScope};
-  }), [ayahs, translations, tafsirSearchText, searchScope]);
-  const deferredQuery = useDeferredValue(query);
+    return {...ayah, searchText, searchCompact: searchText.replace(/\s/g, ''), searchFragments: fragments};
+  }), [ayahs, entriesByBook, searchScope]);
+  const deferredQuery = useDebouncedValue(query);
   const results = useMemo(
     () => searchQuran(deferredQuery, surahs, searchableAyahs, translations),
     [deferredQuery, surahs, searchableAyahs, translations],
@@ -416,15 +426,32 @@ function SearchOverlay({results, query, scope, setScope, history, onClearHistory
     {!hasResults && <div className="empty-state">نتیجه‌ای پیدا نشد. نام سوره، نشانی مانند «بقره ۲۵۵» یا بخشی از متن را بنویسید.</div>}
     {results.direct && <button className="direct-result" onClick={() => {onRemember(query); onOpenSurah(results.direct.surah, results.direct.number);}}><span>رفتن مستقیم</span><strong>سوره {results.direct.surah.name_ar}، آیهٔ {fa(results.direct.number)}</strong><ArrowLeft /></button>}
     {results.matchingSurahs.length > 0 && <section><h3>سوره‌ها</h3>{results.matchingSurahs.slice(0, 8).map(surah => <button className="search-row" key={surah.id} onClick={() => {onRemember(query); onOpenSurah(surah);}}><span className="mini-seal">{fa(surah.id)}</span><span><strong>{surah.name_ar}</strong><small>{fa(surah.ayah_count)} آیه</small></span><ChevronLeft /></button>)}</section>}
-    {results.matchingAyahs.length > 0 && <section><h3>آیات و منابع</h3>{results.matchingAyahs.slice(0, 24).map(ayah => <button className="search-row ayah-result" key={ayah.id} onClick={() => {onRemember(query); onOpenAyah(ayah);}}><span className="mini-seal">{fa(ayah.number)}</span><span><strong>{surahMap.get(ayah.surah_id)?.name_ar}</strong><small>{translations.get(ayah.id) || ayah.text_original}</small></span><em>{SEARCH_SCOPES.find(item => item.id === scope)?.label}</em><ChevronLeft /></button>)}</section>}
+    {results.matchingAyahs.length > 0 && <section><h3>آیات و منابع</h3>{results.matchingAyahs.slice(0, 24).map(ayah => <button className="search-row ayah-result" key={ayah.id} onClick={() => {onRemember(query); onOpenAyah(ayah);}}><span className="mini-seal">{fa(ayah.number)}</span><span><strong>{surahMap.get(ayah.surah_id)?.name_ar} · آیهٔ {fa(ayah.number)}</strong><small><SearchHighlight text={ayah.matchPreview || translations.get(ayah.id) || ayah.text_original} query={query} /></small></span><em>{ayah.matchedSource || SEARCH_SCOPES.find(item => item.id === scope)?.label}</em><ChevronLeft /></button>)}</section>}
   </div></div>;
+}
+
+function SearchHighlight({text, query}) {
+  const ranges = highlightSearchRanges(text, query);
+  if (!ranges.length) return text;
+  const output = [];
+  let offset = 0;
+  ranges.forEach(([start, end], index) => {
+    if (start > offset) output.push(text.slice(offset, start));
+    output.push(<mark key={`${start}-${end}-${index}`}>{text.slice(start, end)}</mark>);
+    offset = end;
+  });
+  if (offset < text.length) output.push(text.slice(offset));
+  return output;
 }
 
 function SavedPage({verses, markCategories, surahMap, translations, onCategory, onOpen}) {
   const [category, setCategory] = useState('همه');
+  const [query, setQuery] = useState('');
   const categories = ['همه', 'حفظ', 'منبر', 'بعداً'];
-  const filtered = category === 'همه' ? verses : verses.filter(ayah => (markCategories[ayah.id] || 'بعداً') === category);
-  return <div className="saved-page"><PageTitle eyebrow="مطالعهٔ شخصی" title="آیات نشان‌شده" description={`${fa(verses.length)} آیه برای مراجعهٔ دوباره ذخیره شده است.`} icon={Bookmark} /><div className="bookmark-categories" role="tablist" aria-label="دسته‌های نشان‌ها">{categories.map(item => <button role="tab" aria-selected={category === item} className={category === item ? 'active' : ''} key={item} onClick={() => setCategory(item)}>{item}</button>)}</div>{!filtered.length ? <div className="large-empty"><Bookmark /><h2>{verses.length ? 'در این دسته نشانی ندارید' : 'هنوز نشانی ندارید'}</h2><p>در صفحهٔ مطالعه، نشانک کنار هر آیه را انتخاب کنید.</p></div> : <div className="saved-list">{filtered.map(ayah => <article key={ayah.id}><button onClick={() => onOpen(ayah)}><span className="surah-seal">{fa(ayah.number)}</span><span><strong>{surahMap.get(ayah.surah_id)?.name_ar}</strong><small>{translations.get(ayah.id) || ayah.text_original}</small></span><ChevronLeft /></button><label><span>دسته</span><select value={markCategories[ayah.id] || 'بعداً'} onChange={event => onCategory(ayah.id, event.target.value)}>{categories.slice(1).map(item => <option key={item}>{item}</option>)}</select></label></article>)}</div>}</div>;
+  const normalizedQuery = normalizeSearch(query);
+  const filtered = verses.filter(ayah => (category === 'همه' || (markCategories[ayah.id] || 'بعداً') === category)
+    && (!normalizedQuery || normalizeSearch(`${surahMap.get(ayah.surah_id)?.name_ar || ''} ${ayah.text_original} ${translations.get(ayah.id) || ''}`).includes(normalizedQuery)));
+  return <div className="saved-page"><PageTitle eyebrow="مطالعهٔ شخصی" title="آیات نشان‌شده" description={`${fa(verses.length)} آیه برای مراجعهٔ دوباره ذخیره شده است.`} icon={Bookmark} /><label className="saved-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="جست‌وجو در نشان‌ها" /></label><div className="bookmark-categories" role="tablist" aria-label="دسته‌های نشان‌ها">{categories.map(item => <button role="tab" aria-selected={category === item} className={category === item ? 'active' : ''} key={item} onClick={() => setCategory(item)}>{item}</button>)}</div>{!filtered.length ? <div className="large-empty"><Bookmark /><h2>{verses.length ? 'در این دسته نتیجه‌ای ندارید' : 'هنوز نشانی ندارید'}</h2><p>در صفحهٔ مطالعه، نشانک کنار هر آیه را انتخاب کنید.</p></div> : <div className="saved-list">{filtered.map(ayah => <article key={ayah.id}><button onClick={() => onOpen(ayah)}><span className="surah-seal">{fa(ayah.number)}</span><span><strong>{surahMap.get(ayah.surah_id)?.name_ar}</strong><small>{translations.get(ayah.id) || ayah.text_original}</small></span><ChevronLeft /></button><label><span>دسته</span><select value={markCategories[ayah.id] || 'بعداً'} onChange={event => onCategory(ayah.id, event.target.value)}>{categories.slice(1).map(item => <option key={item}>{item}</option>)}</select></label></article>)}</div>}</div>;
 }
 
 function SettingsPage({dark, setDark, fontSize, setFontSize, quranFont, setQuranFont, showTranslation, setShowTranslation, onExport, onImport, onSupport}) {

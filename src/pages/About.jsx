@@ -13,7 +13,7 @@ export default function About({onSupport}) {
       <section className="about-card"><h2>ترجمهٔ فارسی</h2><p><strong>ترجمهٔ مرکز رواد</strong></p><p>نسخه و شرایط بازتوزیع در شناسنامهٔ داده ثبت شده است.</p></section>
       <section className="about-card"><h2>تفسیر همراه</h2><p><strong>التفسير الميسر</strong></p><p>نام اثر، مؤلف، منبع و نسخه کنار محتوا حفظ می‌شود.</p></section>
       <section className="about-card full"><ShieldCheck /><h2>سیاست منابع</h2><p>هیچ ترجمه، تفسیر، حدیث، صوت یا واژه‌نامه‌ای بدون منشأ روشن و شرایط بازتوزیع قابل‌بررسی وارد نسخهٔ عمومی نمی‌شود. متن هر اثر همیشه به مؤلف و منبع خودش نسبت داده می‌شود.</p></section>
-      <section className="about-card full"><h2>قابلیت‌ها</h2><ul><li>مطالعهٔ کامل قرآن و محتوای پایه بدون اینترنت</li><li>جست‌وجوی قرآن، ترجمه و تفسیر نصب‌شده</li><li>یادداشت پژوهشی، نشان‌ها، ادامهٔ مطالعه و پشتیبان JSON</li><li>مشابه‌یاب واژگانی مستقل و آفلاین</li><li>سه فونت قرآنی آفلاین، تم روشن و تاریک و تنظیم اندازهٔ متن</li></ul></section>
+      <section className="about-card full"><h2>قابلیت‌ها</h2><ul><li>مطالعهٔ کامل قرآن و محتوای پایه بدون اینترنت</li><li>جست‌وجوی قرآن، ترجمه و تفسیر نصب‌شده</li><li>یادداشت پژوهشی، نشان‌ها، ادامهٔ مطالعه و پشتیبان JSON</li><li>مشابه‌یاب واژگانی مستقل و آفلاین</li><li>پنج فونت عربی و قرآنی آفلاین، تم روشن و تاریک و تنظیم اندازهٔ متن</li></ul></section>
       <section className="about-card full about-support"><HeartHandshake /><div><h2>حمایت از توسعه برنامه</h2><p>حمایت کاملاً اختیاری است و هیچ محدودیتی برای استفاده از برنامه ایجاد نمی‌کند.</p></div><button className="primary-button" type="button" onClick={onSupport}>مشاهده</button></section>
     </div>
   </div>;

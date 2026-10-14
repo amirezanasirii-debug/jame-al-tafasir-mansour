@@ -30,6 +30,47 @@ export const normalizeSearch = value => latinDigits(value)
 const compact = s => s.replace(/\s/g, '');
 const stripAl = s => s.replace(/^ال\s*(?=\S)/, '');
 
+export function highlightSearchRanges(text, query) {
+  const source = String(text || '');
+  const terms = [...new Set(normalizeSearch(query).split(' ').filter(term => term.length > 1))];
+  if (!source || !terms.length) return [];
+  let normalized = '';
+  const starts = [];
+  const ends = [];
+  let sourceOffset = 0;
+  for (const character of source) {
+    const mapped = normalizeSearch(character);
+    for (const normalizedCharacter of mapped) {
+      normalized += normalizedCharacter;
+      starts.push(sourceOffset);
+      ends.push(sourceOffset + character.length);
+    }
+    sourceOffset += character.length;
+  }
+  const ranges = [];
+  for (const term of terms) {
+    let from = 0;
+    while (from < normalized.length) {
+      const found = normalized.indexOf(term, from);
+      if (found < 0) break;
+      let end = ends[found + term.length - 1];
+      while (end < source.length) {
+        const trailing = String.fromCodePoint(source.codePointAt(end));
+        if (!/\p{Mn}/u.test(trailing)) break;
+        end += trailing.length;
+      }
+      ranges.push([starts[found], end]);
+      from = found + term.length;
+    }
+  }
+  return ranges.sort((left, right) => left[0] - right[0]).reduce((merged, range) => {
+    const previous = merged.at(-1);
+    if (previous && range[0] <= previous[1]) previous[1] = Math.max(previous[1], range[1]);
+    else merged.push([...range]);
+    return merged;
+  }, []);
+}
+
 const aliases = {
   1: ['حمد', 'فاتحه'], 2: ['بقره'], 3: ['ال عمران', 'آل عمران'], 9: ['توبه', 'برائت'],
   17: ['اسرا', 'بنی اسرائیل'], 36: ['یس', 'یاسین'], 67: ['ملک', 'تبارک'], 112: ['توحید', 'اخلاص'],
@@ -78,9 +119,14 @@ export function searchQuran(query, surahs, ayahs, translations, limit = 80) {
     return n.includes(q) || compact(n).includes(qc);
   };
   for (const a of ayahs) {
-    if (a.searchText != null ? (a.searchText.includes(q) || (a.searchCompact ?? compact(a.searchText)).includes(qc)) : (hit(a.text_original) || hit(translations.get(a.id) || ''))) {
+    const matchingFragment = a.searchFragments?.find(fragment => hit(fragment.text));
+    if (matchingFragment || (a.searchText != null ? (a.searchText.includes(q) || (a.searchCompact ?? compact(a.searchText)).includes(qc)) : (hit(a.text_original) || hit(translations.get(a.id) || '')))) {
       total++;
-      if (matches.length < limit) matches.push(a);
+      if (matches.length < limit) matches.push(matchingFragment ? {
+        ...a,
+        matchPreview: matchingFragment.text,
+        matchedSource: matchingFragment.label,
+      } : a);
     }
   }
   return { matchingSurahs, matchingAyahs: matches, direct, total };

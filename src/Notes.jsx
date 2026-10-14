@@ -5,6 +5,7 @@ import {
   Search, Share2, Strikethrough, Trash2, Underline, Undo2, X,
 } from 'lucide-react';
 import {migrateNote, notePlainText, sanitizeNoteHtml} from './noteSanitizer.js';
+import {normalizeSearch} from './verseSearch.js';
 
 const newDraft = () => ({id: '', title: '', bodyHtml: '', body: '', ayahId: null, reference: '', tags: ''});
 
@@ -28,7 +29,10 @@ export default function Notes({notes, setNotes, initialDraft, onDraftHandled}) {
   }, [editing, draft.id]);
 
   const normalizedNotes = useMemo(() => notes.map(migrateNote), [notes]);
-  const filtered = useMemo(() => normalizedNotes.filter(note => `${note.title} ${notePlainText(note)} ${note.reference} ${note.tags}`.includes(query)), [normalizedNotes, query]);
+  const filtered = useMemo(() => {
+    const normalizedQuery = normalizeSearch(query);
+    return normalizedNotes.filter(note => !normalizedQuery || normalizeSearch(`${note.title} ${notePlainText(note)} ${note.reference} ${note.tags}`).includes(normalizedQuery));
+  }, [normalizedNotes, query]);
   function openNew() { setDraft(newDraft()); setEditing(true); setCopyStatus(''); }
   function openEdit(note) { setDraft(migrateNote(note)); setEditing(true); setCopyStatus(''); }
   function syncEditor() { setDraft(value => ({...value, bodyHtml: editorRef.current?.innerHTML || ''})); }
