@@ -5,11 +5,4 @@
     <string name="webview_too_old">برای اجرای جامع التفاسیر منصور، Android System WebView یا Chrome را به نسخهٔ ۱۱۱ یا جدیدتر به‌روزرسانی کنید.</string>
     <string name="browser_missing">مرورگری برای بازکردن منبع پیدا نشد</string>
     <string name="page_open_failed">بازکردن صفحه ممکن نشد؛ برنامه را دوباره باز کنید.</string>
-    <string name="hadith_archive_title">منابع حدیثی آفلاین جامع التفاسیر منصور</string>
-    <string name="hadith_archive_description">روایات منتخب و ارجاعات علمی آن‌ها به‌صورت مستقل در پایگاه دادهٔ جامع التفاسیر منصور تعبیه شده‌اند و در محیط اندروید کاملاً آفلاین و بدون نیاز به هیچ برنامهٔ جانبی کار می‌کنند.</string>
-    <string name="hadith_bibliography_title">فهرست منابع و مآخذ علمی برنامه</string>
-    <string name="similarity_engine_title">موتور مشابه‌یاب آیات جامع التفاسیر منصور</string>
-    <string name="similarity_engine_description">برای آیهٔ انتخاب‌شده از پیوندهای پژوهشی جامع التفاسیر منصور استفاده می‌شود؛ برای عبارت آزاد نیز رتبه‌بندی واژگانی و ساختاری به‌صورت کاملاً آفلاین انجام می‌شود.</string>
-    <string name="vocabulary_research_title">پژوهشگاه واژگان جامع التفاسیر منصور</string>
-    <string name="audio_archive_title">آرشیو صوتی جامع التفاسیر منصور</string>
 </resources>
