@@ -18,13 +18,18 @@ test('base Quran data is complete and has explicit source metadata', () => {
   }
 });
 
-test('unverified legacy packages are absent from the publishable project', () => {
-  for (const relative of ['offline', 'audio', 'vocabulary.json', 'almizan']) {
-    assert.equal(fs.existsSync(path.join(publicRoot, relative)), false, relative);
-  }
+test('offline research packages are bundled and complete', () => {
+  assert.equal(fs.readdirSync(path.join(publicRoot, 'offline', 'hadith')).filter(name => name.endsWith('.json')).length, 114);
+  assert.equal(fs.readdirSync(path.join(publicRoot, 'offline', 'similarity')).filter(name => name.endsWith('.json')).length, 114);
+  assert.equal(fs.readdirSync(path.join(publicRoot, 'audio', 'minshawi')).filter(name => name.endsWith('.mp3')).length, 114);
+  const vocabulary = JSON.parse(fs.readFileSync(path.join(publicRoot, 'vocabulary.json'), 'utf8'));
+  assert.equal(vocabulary.entries.length, 16351);
+  const manifest = JSON.parse(fs.readFileSync(path.join(publicRoot, 'offline', 'manifest.json'), 'utf8'));
+  assert.equal(manifest.offline, true);
+  assert(manifest.sources.length >= 25);
   const source = fs.readdirSync(path.join(root, 'src')).filter(name => name.endsWith('.jsx') || name.endsWith('.js'))
     .map(name => fs.readFileSync(path.join(root, 'src', name), 'utf8')).join('\n');
   assert(!source.includes('127.0.0.1'));
-  assert(!source.includes('/offline/tafsir/'));
-  assert(!source.includes('/offline/hadith/'));
+  assert(source.includes('offline/tafsir/'));
+  assert(source.includes('offline/hadith/'));
 });

@@ -16,3 +16,14 @@ release/
 assets/archive/
 reference-sources/
 *.log
+__pycache__/
+*.py[cod]
+
+# Generated licensed/offline content is shipped as release assets and inside
+# installers, but is intentionally kept out of Git history.
+public/almizan/
+public/audio/
+public/offline/tafsir/
+public/offline/hadith/
+public/offline/similarity/
+public/vocabulary.json
