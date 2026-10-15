@@ -22,8 +22,8 @@ android {
         applicationId = "org.jamealtafasir.mobile"
         minSdk = 24
         targetSdk = 37
-        versionCode = 20500
-        versionName = "2.5.0"
+        versionCode = 20700
+        versionName = "2.7.0"
 
         vectorDrawables.useSupportLibrary = false
     }
@@ -99,6 +99,11 @@ android {
             "META-INF/LICENSE*",
             "META-INF/NOTICE*",
         )
+    }
+
+    androidResources {
+        // Required for AssetFileDescriptor and HTTP range playback in WebView.
+        noCompress += "mp3"
     }
 
     lint {

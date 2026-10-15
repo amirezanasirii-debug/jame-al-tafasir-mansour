@@ -1,8 +1,10 @@
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';
 const root=path.resolve('dist');const files=[];
 function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else if(e.name!=='sw.js')files.push(path.relative(root,p).split(path.sep).join('/'))}}walk(root);
-const preCache=[...files];
-const hash=crypto.createHash('sha256');for(const f of files.sort())hash.update(fs.readFileSync(path.join(root,f)));const cache='mansour-v2.5-'+hash.digest('hex').slice(0,16);
+// Native packages already contain the full offline library. Pre-caching hundreds
+// of megabytes would duplicate it in WebView storage and can exceed cache quota.
+const preCache=files.filter(file=>!file.startsWith('audio/')&&!file.startsWith('offline/')&&!file.startsWith('almizan/')&&file!=='vocabulary.json');
+const hash=crypto.createHash('sha256');for(const f of preCache.sort())hash.update(fs.readFileSync(path.join(root,f)));const cache='mansour-v2.4-rebuild-'+hash.digest('hex').slice(0,16);
 fs.writeFileSync(path.join(root,'sw.js'),`const CACHE=${JSON.stringify(cache)},FILES=${JSON.stringify(preCache)};
 self.addEventListener('install',e=>e.waitUntil((async()=>{try{const c=await caches.open(CACHE);await c.addAll(FILES.map(f=>new Request(f,{cache:'reload'})));await self.skipWaiting()}catch(e){await caches.delete(CACHE);throw e}})()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('mansour-v')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));

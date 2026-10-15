@@ -3,6 +3,7 @@ package org.jamealtafasir.mobile;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -26,6 +27,7 @@ import android.window.OnBackInvokedDispatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -156,13 +158,18 @@ public final class MainActivity extends Activity {
                                     + "base-uri 'none'; frame-src 'none'"
                     );
                     headers.put("X-Content-Type-Options", "nosniff");
+                    String assetPath = path.substring(1);
+                    String range = request.getRequestHeaders().get("Range");
+                    if (range != null && path.endsWith(".mp3")) {
+                        return rangedAssetResponse(assetPath, range, headers);
+                    }
                     return new WebResourceResponse(
                             mimeType(path),
                             "UTF-8",
                             200,
                             "OK",
                             headers,
-                            getAssets().open(path.substring(1))
+                            getAssets().open(assetPath)
                     );
                 } catch (IOException exception) {
                     return errorResponse(404);
@@ -267,6 +274,80 @@ public final class MainActivity extends Activity {
                 Collections.emptyMap(),
                 new ByteArrayInputStream(new byte[0])
         );
+    }
+
+    private WebResourceResponse rangedAssetResponse(
+            String assetPath,
+            String rangeHeader,
+            Map<String, String> baseHeaders
+    ) throws IOException {
+        AssetFileDescriptor descriptor = getAssets().openFd(assetPath);
+        long length = descriptor.getLength();
+        Matcher matcher = Pattern.compile("bytes=(\\d+)-(\\d*)").matcher(rangeHeader);
+        if (!matcher.matches()) {
+            descriptor.close();
+            return errorResponse(403);
+        }
+        long start = Long.parseLong(matcher.group(1));
+        long requestedEnd = matcher.group(2).isEmpty()
+                ? Math.min(length - 1, start + (1024L * 1024L) - 1)
+                : Long.parseLong(matcher.group(2));
+        long end = Math.min(length - 1, requestedEnd);
+        if (start < 0 || start >= length || end < start) {
+            descriptor.close();
+            return new WebResourceResponse(
+                    "text/plain", "UTF-8", 416, "Range Not Satisfiable",
+                    Collections.singletonMap("Content-Range", "bytes */" + length),
+                    new ByteArrayInputStream(new byte[0])
+            );
+        }
+        InputStream stream = descriptor.createInputStream();
+        long skipped = 0;
+        while (skipped < start) {
+            long step = stream.skip(start - skipped);
+            if (step <= 0) throw new IOException("Could not seek bundled audio");
+            skipped += step;
+        }
+        long responseLength = end - start + 1;
+        Map<String, String> headers = new HashMap<>(baseHeaders);
+        headers.put("Accept-Ranges", "bytes");
+        headers.put("Content-Range", "bytes " + start + "-" + end + "/" + length);
+        headers.put("Content-Length", Long.toString(responseLength));
+        return new WebResourceResponse(
+                "audio/mpeg", null, 206, "Partial Content", headers,
+                new LimitedInputStream(stream, responseLength)
+        );
+    }
+
+    private static final class LimitedInputStream extends InputStream {
+        private final InputStream delegate;
+        private long remaining;
+
+        private LimitedInputStream(InputStream delegate, long remaining) {
+            this.delegate = delegate;
+            this.remaining = remaining;
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (remaining <= 0) return -1;
+            int value = delegate.read();
+            if (value >= 0) remaining--;
+            return value;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int count) throws IOException {
+            if (remaining <= 0) return -1;
+            int read = delegate.read(buffer, offset, (int) Math.min(count, remaining));
+            if (read > 0) remaining -= read;
+            return read;
+        }
+
+        @Override
+        public void close() throws IOException {
+            delegate.close();
+        }
     }
 
     private static String mimeType(String path) {
