@@ -39,7 +39,10 @@ jobs:
           java-version: "17"
           cache: gradle
       - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+        run: |
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" "platforms;android-37" "build-tools;36.0.0" >/dev/null
       - name: Restore verified offline data
         run: python scripts/restore-offline-data.py
       - name: Install locked dependencies
@@ -69,6 +72,12 @@ jobs:
         run: |
           chmod +x gradlew
           python scripts/build-android.py --flavor direct --build-type release --skip-web
+          APK="$(find release -maxdepth 1 -type f -name '*-Android-Release.apk' -print -quit)"
+          test -n "$APK"
+          CERTIFICATE_OUTPUT="$("$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK")"
+          printf '%s\n' "$CERTIFICATE_OUTPUT"
+          printf '%s\n' "$CERTIFICATE_OUTPUT" | grep -qi \
+            'ecde148bd8ad34be6148731c888228920772364ab79fa8de24046c8bab706d73'
           cd release
           sha256sum *-Android-Release.apk > SHA256SUMS-android.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -125,7 +134,7 @@ jobs:
           "CSC_LINK=$certificatePath" >> $env:GITHUB_ENV
           "CSC_KEY_PASSWORD=$($env:WINDOWS_CSC_PASSWORD)" >> $env:GITHUB_ENV
       - name: Build Windows installer
-        run: pnpm exec electron-builder --win nsis --x64
+        run: pnpm exec electron-builder --win nsis --x64 --publish never
       - name: Verify installer and write SHA-256
         shell: pwsh
         run: |
