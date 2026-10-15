@@ -1,0 +1,169 @@
+name: Signed offline release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "11.25.0"
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  android-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          package-manager-cache: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-37" "build-tools;36.0.0"
+      - name: Restore verified offline data
+        run: python scripts/restore-offline-data.py
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Test and build shared assets
+        run: |
+          pnpm test
+          pnpm run build
+      - name: Decode established Android signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          : "${KEYSTORE_BASE64:?Missing KEYSTORE_BASE64}"
+          : "${KEYSTORE_PASSWORD:?Missing KEYSTORE_PASSWORD}"
+          : "${KEY_ALIAS:?Missing KEY_ALIAS}"
+          : "${KEY_PASSWORD:?Missing KEY_PASSWORD}"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/jame-release.jks"
+          chmod 600 "$RUNNER_TEMP/jame-release.jks"
+          echo "JAME_KEYSTORE_PATH=$RUNNER_TEMP/jame-release.jks" >> "$GITHUB_ENV"
+          echo "JAME_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "JAME_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "JAME_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build and verify signed direct APK
+        run: |
+          chmod +x gradlew
+          python scripts/build-android.py --flavor direct --build-type release --skip-web
+          cd release
+          sha256sum *-Android-Release.apk > SHA256SUMS-android.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: signed-android-release
+          path: |
+            release/*-Android-Release.apk
+            release/SHA256SUMS-android.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  windows-release:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          package-manager-cache: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Restore verified offline data
+        run: python scripts/restore-offline-data.py
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test and build shared assets
+        run: |
+          pnpm test
+          pnpm run build
+      - name: Configure optional Authenticode certificate
+        shell: pwsh
+        env:
+          WINDOWS_CSC_BASE64: ${{ secrets.WINDOWS_CSC_BASE64 }}
+          WINDOWS_CSC_PASSWORD: ${{ secrets.WINDOWS_CSC_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CSC_BASE64)) {
+            'Windows certificate is not configured; the installer will be unsigned.' >> $env:GITHUB_STEP_SUMMARY
+            exit 0
+          }
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CSC_PASSWORD)) {
+            throw 'WINDOWS_CSC_PASSWORD is missing.'
+          }
+          $certificatePath = Join-Path $env:RUNNER_TEMP 'jame-windows-signing.pfx'
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CSC_BASE64))
+          "CSC_LINK=$certificatePath" >> $env:GITHUB_ENV
+          "CSC_KEY_PASSWORD=$($env:WINDOWS_CSC_PASSWORD)" >> $env:GITHUB_ENV
+      - name: Build Windows installer
+        run: pnpm exec electron-builder --win nsis --x64
+      - name: Verify installer and write SHA-256
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -LiteralPath release -Filter '*-Windows-Setup.exe' | Select-Object -First 1
+          if ($null -eq $installer) { throw 'Windows installer was not produced.' }
+          $signature = Get-AuthenticodeSignature -LiteralPath $installer.FullName
+          if (-not [string]::IsNullOrWhiteSpace($env:CSC_LINK) -and $signature.Status -ne 'Valid') {
+            throw "Authenticode verification failed: $($signature.Status)"
+          }
+          "Signature status: $($signature.Status)" >> $env:GITHUB_STEP_SUMMARY
+          $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $installer.FullName
+          "$($hash.Hash.ToLowerInvariant()) *$($installer.Name)" |
+            Set-Content -LiteralPath 'release/SHA256SUMS-windows.txt' -Encoding ascii
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-release
+          path: |
+            release/*-Windows-Setup.exe
+            release/SHA256SUMS-windows.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [android-release, windows-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: "*-release"
+          path: bundles
+          merge-multiple: true
+      - name: Publish verified release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" --verify-tag --generate-notes \
+            --title "جامع التفاسیر منصور $RELEASE_TAG" bundles/*
