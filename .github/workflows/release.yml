@@ -42,7 +42,11 @@ jobs:
         run: |
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
+          set +o pipefail
           yes | "$SDKMANAGER" "platforms;android-37" "build-tools;36.0.0" >/dev/null
+          SDKMANAGER_STATUS="${PIPESTATUS[1]}"
+          set -o pipefail
+          test "$SDKMANAGER_STATUS" -eq 0
       - name: Restore verified offline data
         run: python scripts/restore-offline-data.py
       - name: Install locked dependencies
