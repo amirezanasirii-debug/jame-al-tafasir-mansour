@@ -165,5 +165,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" --verify-tag --generate-notes \
-            --title "جامع التفاسیر منصور $RELEASE_TAG" bundles/*
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --generate-notes \
+              --title "جامع التفاسیر منصور $RELEASE_TAG"
+          fi
+          while IFS= read -r -d '' file; do
+            gh release upload "$RELEASE_TAG" "$file" --clobber
+          done < <(find bundles -type f -print0)
