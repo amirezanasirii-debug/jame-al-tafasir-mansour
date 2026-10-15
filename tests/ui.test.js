@@ -8,7 +8,16 @@ import {fileURLToPath} from 'node:url';
 
 test('main offline research flows render without runtime errors', async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const bundle = await build({entryPoints: [path.join(root, 'src/main.jsx')], bundle: true, write: false, format: 'iife', loader: {'.css': 'empty'}, define: {'import.meta.env.BASE_URL': '"/"'}, logLevel: 'silent'});
+  const bundle = await build({
+    absWorkingDir: root,
+    entryPoints: [path.join(root, 'src', 'main.jsx')],
+    bundle: true,
+    write: false,
+    format: 'iife',
+    loader: {'.css': 'empty'},
+    define: {'import.meta.env.BASE_URL': '"/"'},
+    logLevel: 'silent',
+  });
   const dom = new JSDOM('<div id="root"></div>', {url: 'http://localhost:4173', runScripts: 'outside-only', pretendToBeVisual: true});
   const w = dom.window; const errors = [];
   w.addEventListener('error', event => errors.push(event.message));
@@ -27,9 +36,9 @@ test('main offline research flows render without runtime errors', async () => {
   assert(w.document.body.textContent.includes('این حمایت کاملاً اختیاری است'));
   click('تنظیمات'); await wait(() => w.document.body.textContent.includes('رسم‌الخط و اندازهٔ قرآن'));
   assert.equal(w.document.querySelectorAll('.font-picker [role="radio"]').length, 3);
-  click('مشابه‌یاب'); await wait(() => w.document.body.textContent.includes('محاسبهٔ مستقل روی متن قرآن'));
+  click('مشابه‌یاب'); await wait(() => w.document.body.textContent.includes('موتور مشابه‌یاب آیات'));
   assert(w.document.querySelector('.similarity-form textarea'));
-  click('احادیث مرتبط'); await wait(() => w.document.body.textContent.includes('هیچ بستهٔ حدیثی عمومی نصب نشده است'));
+  click('احادیث مرتبط'); await wait(() => w.document.body.textContent.includes('منابع حدیثی آفلاین'));
   assert(w.document.querySelector('.source-controls'));
   click('یادداشت‌ها'); await wait(() => w.document.body.textContent.includes('یادداشت و پژوهش'));
   click('پژوهش تازه'); await wait(() => w.document.querySelector('.rich-editor'));
@@ -44,7 +53,7 @@ test('main offline research flows render without runtime errors', async () => {
   w.document.querySelector('.verse-info-button').click(); await wait(() => w.document.querySelector('[role="dialog"]'));
   [...w.document.querySelectorAll('.source-tabs button')].find(button => button.textContent.trim() === 'تفسیر').click();
   await wait(() => w.document.querySelector('.verse-tafsir-box'));
-  assert.equal(w.document.querySelectorAll('.tafsir-scroll-tabs [role="tab"]').length, 1);
+  assert(w.document.querySelectorAll('.tafsir-scroll-tabs [role="tab"]').length >= 5);
   assert.deepEqual(errors, []);
   dom.window.close();
 });

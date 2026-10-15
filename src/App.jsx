@@ -58,7 +58,7 @@ function App() {
     const stored = safeRead('jm-search-history', []);
     return Array.isArray(stored) ? stored.slice(0, 10) : [];
   });
-  const [dark, setDark] = useState(() => safeRead('jm-dark', false));
+  const [dark, setDark] = useState(() => safeRead('jm-dark', true));
   const [marks, setMarks] = useState(() => {
     const stored = safeRead('jm-marks', []);
     return Array.isArray(stored) ? stored : [];
@@ -281,7 +281,7 @@ function App() {
         </nav>
         <div className="sidebar-card"><Sparkles /><strong>کتابخانهٔ پژوهشی</strong><p>قرآن، تفاسیر، واژه‌نامه و یادداشت‌های شخصی در یک محیط.</p></div>
         <button className={`about-link ${view === 'about' ? 'active' : ''}`} onClick={() => navigate('about')}><Info /> درباره برنامه</button>
-        <small className="version">نسخهٔ ۲.۴</small>
+        <small className="version">نسخهٔ ۲.۷.۰ آفلاین · بازسازی پایدار بر پایهٔ ۲.۴</small>
       </aside>
       {mobileMenu && <button className="menu-backdrop" onClick={() => setMobileMenu(false)} aria-label="بستن فهرست" />}
 

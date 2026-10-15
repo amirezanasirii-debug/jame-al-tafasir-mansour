@@ -5,7 +5,7 @@ export default function About({onSupport}) {
   return <div className="about-page" dir="rtl" lang="fa">
     <header className="about-hero">
       <img src={`${import.meta.env.BASE_URL}icon-144.png`} alt="نشان جامع‌التفاسیر منصور" />
-      <div><span>نسخهٔ ۲.۵ برای ویندوز و اندروید</span><h1>جامع‌التفاسیر منصور</h1><p>نرم‌افزار مستقل مطالعه و پژوهش قرآن</p></div>
+      <div><span>نسخهٔ ۲.۷.۰ آفلاین برای رایانه و اندروید</span><h1>جامع‌التفاسیر منصور</h1><p>نرم‌افزار مستقل مطالعه و پژوهش قرآن؛ بازسازی پایدار بر پایهٔ نسخهٔ ۲.۴</p></div>
     </header>
     <div className="about-grid">
       <section className="about-card"><h2>مشخصات نرم‌افزار</h2><p>پدیدآورنده: <strong>حجت‌الاسلام امیررضا نصیری</strong></p><p>رابط، جست‌وجو و امکانات پژوهشی این برنامه مستقل توسعه یافته‌اند.</p></section>

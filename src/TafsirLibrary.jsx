@@ -1,37 +1,60 @@
-import React, {useDeferredValue, useMemo, useState} from 'react';
-import {ArrowRight, BookOpen, ChevronLeft, Library, Search, ShieldCheck, Sparkles} from 'lucide-react';
-import {normalizeSearch} from './verseSearch.js';
+import React, {useEffect, useMemo, useState} from 'react';
+import {ArrowRight, BookOpen, ChevronLeft, Library, RefreshCw, ShieldCheck, Sparkles} from 'lucide-react';
+import {loadOfflineManifest, loadTafsirVerse} from './offlineData.js';
 
-export default function TafsirLibrary({books, ayahMap, surahMap}) {
-  const tafsirs = useMemo(() => books.filter(book => book.kind === 'tafsir'), [books]);
+export default function TafsirLibrary({books, surahs, versesBySurah}) {
+  const [offlineSources, setOfflineSources] = useState([]);
+  const [status, setStatus] = useState('loading');
   const [selectedId, setSelectedId] = useState('');
-  const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
-  const selected = tafsirs.find(book => book.id === selectedId);
-  const results = useMemo(() => {
-    if (!selected) return [];
-    const normalized = normalizeSearch(deferredQuery);
-    const entries = normalized
-      ? selected.entries.filter(entry => normalizeSearch(entry.text).includes(normalized))
-      : selected.entries;
-    return entries.slice(0, 80);
-  }, [selected, deferredQuery]);
+  const [surahId, setSurahId] = useState(1);
+  const [verseNumber, setVerseNumber] = useState(1);
+  const [entries, setEntries] = useState([]);
+  const [entryStatus, setEntryStatus] = useState('idle');
+  const embedded = useMemo(() => books.filter(book => book.kind === 'tafsir').map(book => ({...book, id: `embedded:${book.id}`, embedded: true})), [books]);
+  const sources = useMemo(() => [...offlineSources.map(source => ({...source, id: `offline:${source.id}`, offlineId: source.id})), ...embedded], [embedded, offlineSources]);
+  const selected = sources.find(source => source.id === selectedId);
+  const verses = versesBySurah.get(Number(surahId)) || [];
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadOfflineManifest({signal: controller.signal})
+      .then(manifest => { if (!controller.signal.aborted) { setOfflineSources(manifest.sources || []); setStatus('ready'); } })
+      .catch(() => { if (!controller.signal.aborted) setStatus('error'); });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return undefined;
+    if (selected.embedded) {
+      const ayah = verses.find(item => item.number === Number(verseNumber));
+      const item = selected.entries.find(entry => entry.ayah_id === ayah?.id);
+      setEntries(item ? [item] : []); setEntryStatus('ready'); return undefined;
+    }
+    const controller = new AbortController();
+    setEntryStatus('loading');
+    loadTafsirVerse(selected.offlineId, surahId, verseNumber, {signal: controller.signal})
+      .then(items => { if (!controller.signal.aborted) { setEntries(items); setEntryStatus('ready'); } })
+      .catch(() => { if (!controller.signal.aborted) { setEntries([]); setEntryStatus('error'); } });
+    return () => controller.abort();
+  }, [selected, surahId, verseNumber, verses]);
 
   if (selected) return <div className="library-reader">
     <button className="back-button library-back" onClick={() => setSelectedId('')}><ArrowRight /> بازگشت به کتابخانه</button>
-    <header className="source-reader-heading"><div className="library-mark"><BookOpen /></div><div><span>بستهٔ آفلاین با شناسنامهٔ منبع</span><h1>{selected.title}</h1><p>{selected.author} · نسخهٔ {selected.version || 'ثبت‌نشده'} · {selected.entries.length.toLocaleString('fa-IR')} مدخل</p></div></header>
-    <label className="library-search"><Search /><input value={query} onChange={event => setQuery(event.target.value)} placeholder={`جست‌وجو در ${selected.title}…`} /></label>
-    <div className="tafsir-entry-list">{results.map(entry => { const ayah = ayahMap.get(entry.ayah_id); const surah = surahMap.get(ayah?.surah_id); return <article key={entry.ayah_id}><header><strong>سوره {surah?.name_ar || '—'}، آیهٔ {Number(ayah?.number || 0).toLocaleString('fa-IR')}</strong><small>{selected.title}</small></header><p lang={selected.language || 'ar'}>{entry.text}</p><footer>{selected.author} · منبع: {selected.source_id}</footer></article>; })}</div>
-    {!results.length && <div className="large-empty"><Search /><h2>نتیجه‌ای پیدا نشد</h2><p>عبارت دیگری را امتحان کنید.</p></div>}
+    <header className="source-reader-heading"><div className="library-mark"><BookOpen /></div><div><span>بستهٔ آفلاین آیه‌محور</span><h1>{selected.title}</h1><p>{selected.author || 'شناسنامهٔ اثر همراه بسته'} · {selected.version || 'نسخهٔ نصب‌شده'}</p></div></header>
+    <section className="source-controls"><label><span>سوره</span><select value={surahId} onChange={event => {setSurahId(Number(event.target.value)); setVerseNumber(1);}}>{surahs.map(surah => <option value={surah.id} key={surah.id}>{surah.id.toLocaleString('fa-IR')}. {surah.name_ar}</option>)}</select></label><label><span>آیه</span><select value={verseNumber} onChange={event => setVerseNumber(Number(event.target.value))}>{verses.map(ayah => <option value={ayah.number} key={ayah.id}>{ayah.number.toLocaleString('fa-IR')}</option>)}</select></label></section>
+    {entryStatus === 'loading' && <div className="inline-state">در حال بازکردن متن آفلاین…</div>}
+    {entryStatus === 'error' && <div className="large-empty compact"><RefreshCw /><h2>متن باز نشد</h2><p>بسته داخل نصب ناقص است یا خوانده نمی‌شود.</p></div>}
+    {entryStatus === 'ready' && <div className="tafsir-entry-list">{entries.map((entry, index) => <article key={`${entry.page || index}-${index}`}><header><strong>آیهٔ {Number(verseNumber).toLocaleString('fa-IR')}</strong><small>{entry.title || selected.title}{entry.volume ? ` · جلد ${Number(entry.volume).toLocaleString('fa-IR')}` : ''}{entry.page ? ` · صفحه ${Number(entry.page).toLocaleString('fa-IR')}` : ''}</small></header><p lang={selected.language || 'ar'}>{entry.text}</p><footer>{selected.title} · {selected.author || 'مشخصات مؤلف در شناسنامهٔ اثر'}</footer></article>)}</div>}
+    {entryStatus === 'ready' && !entries.length && <div className="large-empty"><BookOpen /><h2>برای این آیه مطلبی ثبت نشده است</h2><p>آیهٔ دیگری را انتخاب کنید.</p></div>}
   </div>;
 
   return <div className="tafsir-library-page">
-    <header className="page-title"><span className="page-icon"><Library /></span><div><span>منابع تفسیری</span><h1>کتابخانه</h1><p>فقط بسته‌هایی نمایش داده می‌شوند که منشأ، نسخه و شرایط بازتوزیعشان ثبت شده باشد.</p></div></header>
-    <section className="library-banner"><Sparkles /><div><strong>مطالعهٔ مستقل و آفلاین</strong><p>متن بسته‌های نصب‌شده داخل برنامه است و نام اثر، مؤلف و منبع زیر هر مطلب حفظ می‌شود.</p></div></section>
-    <div className="book-shelf">
-      {tafsirs.map(source => <button className="book-card verified-book" key={source.id} onClick={() => setSelectedId(source.id)}><span className="book-spine">{source.entries.length.toLocaleString('fa-IR')} مدخل</span><div><small>{source.language === 'ar' ? 'تفسیر عربی' : 'تفسیر فارسی'} · نسخهٔ {source.version || '—'}</small><h2>{source.title}</h2><p>{source.author}</p><em>ورود به کتاب <ChevronLeft /></em></div></button>)}
-    </div>
-    {!tafsirs.length && <div className="large-empty"><BookOpen /><h2>هنوز بستهٔ تفسیری نصب نیست</h2><p>پس از تأیید مجوز هر اثر، بستهٔ مستقل آن از کتابخانه قابل نصب خواهد بود.</p></div>}
-    <section className="library-note"><ShieldCheck /><div><h2>کنترل منشأ محتوا</h2><p>وجود یک فایل در اینترنت یا GitHub به‌تنهایی مجوز بازتوزیع نیست؛ هر بسته جداگانه بررسی و ثبت می‌شود.</p></div></section>
+    <header className="page-title"><span className="page-icon"><Library /></span><div><span>منابع تفسیری</span><h1>کتابخانه</h1><p>تفاسیر نصب‌شده، آیه‌به‌آیه و بدون نیاز به اینترنت.</p></div></header>
+    <section className="library-banner"><Sparkles /><div><strong>کتابخانهٔ پژوهشی مستقل و آفلاین</strong><p>متن منابع داخل برنامه قرار دارد و نام اثر، مؤلف و مشخصات کتاب‌شناختی حفظ می‌شود.</p></div></section>
+    {status === 'loading' && <div className="inline-state">در حال شناسایی بسته‌های کتابخانه…</div>}
+    {status === 'error' && <div className="inline-state error-state">فهرست بسته‌های آفلاین باز نشد؛ نصب برنامه را بررسی کنید.</div>}
+    <div className="book-shelf">{sources.map(source => <button className="book-card verified-book" key={source.id} onClick={() => setSelectedId(source.id)}><span className="book-spine">آفلاین</span><div><small>{source.language === 'ar' ? 'تفسیر عربی' : 'تفسیر فارسی'} · {source.version || 'نسخهٔ همراه'}</small><h2>{source.title}</h2><p>{source.author || 'شناسنامهٔ علمی همراه اثر'}</p><em>ورود به کتاب <ChevronLeft /></em></div></button>)}</div>
+    {!sources.length && status !== 'loading' && <div className="large-empty"><BookOpen /><h2>بستهٔ تفسیری پیدا نشد</h2><p>فایل‌های نصب برنامه ناقص است.</p></div>}
+    <section className="library-note"><ShieldCheck /><div><h2>حفظ امانت علمی</h2><p>نام کتاب، مؤلف و مشخصات منبع زیر هر متن نمایش داده می‌شود؛ متن علمی هنگام تبدیل ساختار تغییر نمی‌کند.</p></div></section>
   </div>;
 }

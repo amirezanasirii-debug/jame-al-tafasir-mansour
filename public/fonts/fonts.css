@@ -5,6 +5,15 @@
   font-display: swap;
   src: url(./AmiriQuran.ttf) format('truetype');
 }
+/* Compatibility alias for legacy selectors; it uses the same bundled,
+   licensed Amiri Quran file and avoids a synthetic/missing font fallback. */
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(./AmiriQuran.ttf) format('truetype');
+}
 @font-face {
   font-family: 'Scheherazade New';
   font-style: normal;
@@ -18,53 +27,4 @@
   font-weight: 100 900;
   font-display: swap;
   src: url(./NotoNaskhArabic.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Amiri';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./c1ed75c0eada28ab.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Amiri';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./68199692a9545c97.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(./c1d7b2caac4b16d6.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url(./b99b37cfbb0b5792.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url(./807ef757a2ad2e98.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(./6d1573e94b283343.ttf) format('truetype');
-}
-@font-face {
-  font-family: 'Vazirmatn';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url(./050202271715e578.ttf) format('truetype');
 }
