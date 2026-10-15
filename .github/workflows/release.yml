@@ -12,6 +12,9 @@ env:
   NODE_VERSION: "24"
   PNPM_VERSION: "11.25.0"
   PYTHON_VERSION: "3.13"
+  # Google Maven returns 404 in the current runners; this mirror is restricted
+  # in settings.gradle.kts to Android/AndroidX and one required test group.
+  JAME_GOOGLE_MAVEN_MIRROR: "https://maven.aliyun.com/repository/google"
 
 jobs:
   android-release:
@@ -43,7 +46,7 @@ jobs:
           SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
           set +o pipefail
-          yes | "$SDKMANAGER" "platforms;android-37" "build-tools;36.0.0" >/dev/null
+          yes | "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" >/dev/null
           SDKMANAGER_STATUS="${PIPESTATUS[1]}"
           set -o pipefail
           test "$SDKMANAGER_STATUS" -eq 0

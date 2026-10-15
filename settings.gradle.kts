@@ -9,6 +9,7 @@ pluginManagement {
                 content {
                     includeGroupByRegex("com\\.android.*")
                     includeGroupByRegex("androidx\\..*")
+                    includeGroup("com.google.testing.platform")
                 }
             }
         }
@@ -29,6 +30,7 @@ dependencyResolutionManagement {
                 content {
                     includeGroupByRegex("com\\.android.*")
                     includeGroupByRegex("androidx\\..*")
+                    includeGroup("com.google.testing.platform")
                 }
             }
         }

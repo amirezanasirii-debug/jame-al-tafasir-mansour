@@ -15,13 +15,13 @@ val hasReleaseSigning = listOf(
 
 android {
     namespace = "org.jamealtafasir.mobile"
-    compileSdk = 37
+    compileSdk = 36
     buildToolsVersion = "36.0.0"
 
     defaultConfig {
         applicationId = "org.jamealtafasir.mobile"
         minSdk = 24
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 20700
         versionName = "2.7.0"
 
@@ -110,7 +110,8 @@ android {
         abortOnError = true
         checkReleaseBuilds = true
         warningsAsErrors = true
-        // Gradle 9.6 is the documented default/minimum for AGP 9.4.
+        // AGP 8.13 reports a newer-plugin hint even though it is the stable
+        // release line documented for API 36; keep other lint warnings fatal.
         disable += "AndroidGradlePluginVersion"
     }
 }

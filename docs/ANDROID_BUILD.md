@@ -4,10 +4,10 @@
 
 ## نسخه‌های ابزار
 
-- Android Gradle Plugin: 9.4.0
-- Gradle Wrapper: 9.6.0
+- Android Gradle Plugin: 8.13.2 (stable; supports API 36)
+- Gradle Wrapper: 8.13
 - Java: 17
-- compileSdk / targetSdk: 37
+- compileSdk / targetSdk: 36 (Android 16؛ آخرین SDK Platform پایدار و منتشرشده)
 - minSdk: 24
 
 ## گونه‌های انتشار
