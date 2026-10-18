@@ -1,3 +1,5 @@
+> پیش‌نمایش تازهٔ میز پژوهش منصور ۲.۸ برای Windows و Android در [research/README.md](research/README.md) مستند شده است. کد این شاخه افزودهٔ مستقل به سورس قبلی است؛ فایل‌های انتشار در [GitHub Releases](https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/tag/research-v2.8.0-preview.1) قرار می‌گیرند.
+
 # جامع‌التفاسیر منصور
 
 برنامه‌ای مستقل برای مطالعه و پژوهش قرآن در Windows و Android؛ با رابط فارسی راست‌به‌چپ، مطالعهٔ آفلاین، جست‌وجو، یادداشت، نشان‌گذاری و کتابخانهٔ منبع‌محور.

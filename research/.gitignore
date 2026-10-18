@@ -1,0 +1,16 @@
+node_modules/
+.gradle/
+build/
+android/build/
+local.properties
+*.jks
+*.keystore
+*.key
+.env*
+*.apk
+*.aab
+dist/*
+!dist/research.html
+!dist/research.css
+!dist/research.mjs
+!dist/research-core.mjs

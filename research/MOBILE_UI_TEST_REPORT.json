@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "checks": [
+    "390px mobile viewport without horizontal overflow",
+    "mobile theme survives reload",
+    "native clipboard bridge receives cited text",
+    "Android backup bridge receives valid note JSON",
+    "Markdown export bridge",
+    "backup restore via file input",
+    "Android back returns to reader"
+  ],
+  "errors": [],
+  "scope": "Mobile Chromium with Android bridge mocks; not an Android-device test"
+}

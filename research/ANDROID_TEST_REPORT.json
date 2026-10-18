@@ -1,0 +1,14 @@
+{
+  "version": "2.8.0-preview.1",
+  "applicationId": "org.jamealtafasir.mobile",
+  "versionCode": 20799,
+  "minSdk": 24,
+  "targetSdk": 36,
+  "assembleDirectRelease": "passed",
+  "lintDirectRelease": "No issues found",
+  "lintScope": "Pinned AGP and API 36 direct-distribution baseline; AndroidGradlePluginVersion and OldTargetApi advisory checks excluded with documented reasons",
+  "apkSignature": {"v2": true, "v3": true, "certificateSha256": "ecde148bd8ad34be6148731c888228920772364ab79fa8de24046c8bab706d73", "matchesLocalVersion240": true},
+  "deviceTest": "Not run: no Android device or emulator connected",
+  "mobileBrowserTests": "See MOBILE_UI_TEST_REPORT.json; native bridge mocked",
+  "limits": ["Native document picker, physical audio playback and upgrade installation need device validation", "Research notes use a separate storage key from the classic interface"]
+}
