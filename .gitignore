@@ -18,3 +18,5 @@ reference-sources/
 *.log
 __pycache__/
 *.py[cod]
+
+!research/dist/

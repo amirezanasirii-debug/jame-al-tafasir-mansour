@@ -1,0 +1,18 @@
+{
+  "surahs": 114,
+  "versesWithErab": 6236,
+  "erabNodes": 147895,
+  "versesWithRhetoric": 4608,
+  "rhetoricEntries": 16631,
+  "danglingEdges": 208,
+  "sourceIndex": "cLR_yfQaS52dZmJg5308dQ",
+  "sourceSha256": "62fc59a2af3b53e3ebc098f4e6ef36d48ad25fea35658c3654720f05087bff1c",
+  "mapping": "AyahId joined to QuranSurahVerses; 112 verse-zero basmalas separated.",
+  "limitations": [
+    "Raw scholarly source analyses retained; not independently verified.",
+    "Erab node ids are local graph ids, not word positions; use Word and parsed attributes for display.",
+    "Edges relationId requires a separate original relation-label dictionary; do not invent relation names.",
+    "Missing rhetoric entries mean no annotation in supplied data, not absence of rhetorical devices.",
+    "Render text/attributes escaped; xml is data and must not be inserted as executable markup."
+  ]
+}

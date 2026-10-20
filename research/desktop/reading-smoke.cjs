@@ -1,0 +1,22 @@
+const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
+module.exports=async(win,app,root)=>{
+ const checks=[],errors=[],js=code=>win.webContents.executeJavaScript(code);
+ const wait=async code=>{const until=Date.now()+30000;while(Date.now()<until){if(await js(code))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timed out: '+code)};
+ win.webContents.on('console-message',(_event,...args)=>{const message=args.map(String).join(' ');if(message.includes('Uncaught'))errors.push(message)});
+ try{
+  await wait("document.body.dataset.ready==='true'");assert((await js('location.href')).startsWith('jame://app/'));checks.push('secure native protocol and startup');
+  const gzip=await js("fetch('full-books/11131/11131_001/0.json.gz').then(async r=>({status:r.status,pages:(await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json()).length}))");assert.equal(gzip.status,200);assert(gzip.pages>0);checks.push('real native gzip fetch and decompression');
+  await js("document.querySelector('[data-view=library]').click();document.getElementById('library-search').value='القراءات في نظر المستشرقین';document.getElementById('library-search').dispatchEvent(new Event('input'));document.querySelector('.book-card button.primary').click()");
+  await wait("document.querySelector('#book-page-text .book-story')");await wait("[...document.querySelectorAll('.book-page-image')].some(i=>i.complete&&i.naturalWidth>0)");checks.push('book text and scanned image render');
+  await js("document.getElementById('book-next').click()");await wait("document.querySelector('#book-page-text .book-story')");checks.push('book page navigation');
+  await js("document.querySelector('[data-view=reader]').click();document.getElementById('surah').value='92';document.getElementById('surah').dispatchEvent(new Event('change'));document.getElementById('verse').value='19';document.getElementById('verse').dispatchEvent(new Event('change'));document.querySelector('[data-tab=words]').click()");
+  await wait("document.querySelector('[data-word-length=\"2\"]')");checks.push('offline multiword meanings');await js("document.querySelector('[data-tab=grammar]').click()");await wait("document.querySelector('.grammar-fields')");checks.push('offline grammar analysis');
+  const packs=await js('window.MansourBooks.getInstalledPacks()');assert.equal(packs.packs.length,6);assert(packs.packs.every(p=>p.installed));checks.push('all six production packs installed through native bridge');
+  await js("document.querySelector('[data-view=library]').click();document.getElementById('library-search').value='تفسیر ابي مسلم';document.getElementById('library-search').dispatchEvent(new Event('input'));document.querySelector('.book-card button.primary').click()");
+  await wait("document.getElementById('book-volume').disabled && document.querySelector('#book-page-text .book-story')");assert((await js("document.getElementById('book-title').textContent")).includes('مسلم'));checks.push('virtual booklet opens within verified parent-volume boundaries');
+  await js("document.querySelector('[data-view=library]').click();document.getElementById('library-search').value='';document.getElementById('library-search').dispatchEvent(new Event('input'));window.scrollTo(0,0)");await js('document.fonts.ready');await new Promise(r=>setTimeout(r,1200));
+  await fs.mkdir(root,{recursive:true});await fs.writeFile(path.join(root,'library.png'),(await win.webContents.capturePage()).toPNG());
+  await js("document.querySelector('[data-view=reader]').click();document.getElementById('surah').value='1';document.getElementById('surah').dispatchEvent(new Event('change'));document.getElementById('reading-mode').value='surah';document.getElementById('reading-mode').dispatchEvent(new Event('change'));window.scrollTo(0,0)");await new Promise(r=>setTimeout(r,1000));await fs.writeFile(path.join(root,'reading.png'),(await win.webContents.capturePage()).toPNG());
+  assert.deepEqual(errors,[]);await fs.writeFile(path.join(root,'report.json'),JSON.stringify({ok:true,checks,errors,gzip,scope:'Actual packaged Windows Electron app; full production library imported, original bytes served through native protocol'},null,2));app.exit(0);
+ }catch(e){await fs.mkdir(root,{recursive:true});await fs.writeFile(path.join(root,'report.json'),JSON.stringify({ok:false,checks,errors,error:e.stack},null,2));app.exit(1);}
+};

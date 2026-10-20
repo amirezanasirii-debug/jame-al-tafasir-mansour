@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "checks": [
+    "secure native protocol and startup",
+    "real native gzip fetch and decompression",
+    "book text and scanned image render",
+    "book page navigation",
+    "offline multiword meanings",
+    "offline grammar analysis",
+    "all six production packs installed through native bridge",
+    "virtual booklet opens within verified parent-volume boundaries"
+  ],
+  "errors": [],
+  "gzip": {
+    "status": 200,
+    "pages": 64
+  },
+  "scope": "Actual packaged Windows Electron app; full production library imported, original bytes served through native protocol"
+}

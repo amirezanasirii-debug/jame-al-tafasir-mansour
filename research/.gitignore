@@ -14,3 +14,5 @@ dist/*
 !dist/research.css
 !dist/research.mjs
 !dist/research-core.mjs
+
+!dist/*.mjs

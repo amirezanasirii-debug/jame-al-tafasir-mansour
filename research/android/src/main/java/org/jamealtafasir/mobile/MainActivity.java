@@ -55,6 +55,7 @@ public final class MainActivity extends Activity {
     ));
 
     private WebView webView;
+    private BookPackStore bookPacks;
     private String pendingExport;
     private ValueCallback<Uri[]> fileCallback;
     private OnBackInvokedCallback backInvokedCallback;
@@ -120,6 +121,8 @@ public final class MainActivity extends Activity {
         CookieManager.getInstance().setAcceptCookie(false);
         WebView.setWebContentsDebuggingEnabled(false);
         target.addJavascriptInterface(new ExportBridge(), "MansourAndroid");
+        bookPacks = new BookPackStore(this, detail -> runOnUiThread(() -> { if(webView != null) webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('mansour-pack-progress',{detail:" + detail.toString() + "}))", null); }));
+        target.addJavascriptInterface(new BooksBridge(), "MansourBooks");
         target.setWebViewClient(createWebViewClient());
         target.setWebChromeClient(createWebChromeClient());
         return true;
@@ -178,7 +181,7 @@ public final class MainActivity extends Activity {
                             200,
                             "OK",
                             headers,
-                            getAssets().open(assetPath)
+                            openBundledOrBook(assetPath)
                     );
                 } catch (IOException exception) {
                     return errorResponse(404);
@@ -264,6 +267,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 83) { if(resultCode == RESULT_OK && data != null && data.getData() != null) { Uri selected=data.getData(); new Thread(() -> bookPacks.importUri(selected), "mansour-book-import").start(); } else bookPacks.cancel(); return; }
         if (requestCode == 82) {
             String payload = pendingExport;
             pendingExport = null;
@@ -320,6 +324,18 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private InputStream openBundledOrBook(String assetPath) throws IOException {
+        if(assetPath.startsWith("full-books/")) { java.io.File f=bookPacks.resolve(assetPath.substring(11)); if(f!=null)return new java.io.FileInputStream(f); }
+        return getAssets().open(assetPath);
+    }
+    private final class BooksBridge {
+        @JavascriptInterface public String getInstalledPacks(){return bookPacks.status();}
+        @JavascriptInterface public String importBookPack(){
+            if(!bookPacks.reserve())return "{\"accepted\":false}";
+            runOnUiThread(() -> { try { Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT);pick.addCategory(Intent.CATEGORY_OPENABLE);pick.setType("*/*");startActivityForResult(pick,83); } catch(RuntimeException e){bookPacks.cancel();} });
+            return "{\"accepted\":true}";
+        }
+    }
     private void showFatalMessage(FrameLayout frame, int messageResource) {
         TextView message = new TextView(this);
         message.setText(messageResource);
@@ -426,6 +442,10 @@ public final class MainActivity extends Activity {
         if (path.endsWith(".woff")) return "font/woff";
         if (path.endsWith(".ttf")) return "font/ttf";
         if (path.endsWith(".png")) return "image/png";
+        if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+        if (path.endsWith(".gif")) return "image/gif";
+        if (path.endsWith(".webp")) return "image/webp";
+        if (path.endsWith(".bmp")) return "image/bmp";
         if (path.endsWith(".mp3")) return "audio/mpeg";
         return "application/octet-stream";
     }

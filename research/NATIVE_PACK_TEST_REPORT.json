@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "packs": [
+    {
+      "id": "books-001-1548d5a15670",
+      "files": 14209,
+      "sha256": "acc6bf4ca59309ccd14012d84376e2ee2235f55db94312925a28ad8ca134d883"
+    },
+    {
+      "id": "books-002-adcbf09fb3ce",
+      "files": 12879,
+      "sha256": "db3d1a98db7d68a356abd2d78d0fac9478da668fe4b0d16c4ad67b3d7ace4c1c"
+    },
+    {
+      "id": "books-003-cbd8461f09e1",
+      "files": 11775,
+      "sha256": "74dd0b1d5c4bec3633beaa15955efff76da50831cbfc94461e7022ece44f51ed"
+    },
+    {
+      "id": "books-004-5817f992c773",
+      "files": 15159,
+      "sha256": "3adb7459e654a98a7100e6e3e39c97aa9e0458a947547a6e1b92b57bfa7f1703"
+    },
+    {
+      "id": "books-005-7d0dc35c5b52",
+      "files": 13205,
+      "sha256": "cd322e61cfc1172a9b53c2e246c5635ba3d943369acdc97aa21a53ef4dc4c6de"
+    },
+    {
+      "id": "books-006-44ac9aa612b7",
+      "files": 12703,
+      "sha256": "aba872989af6ad21435c8736e7684f0e1533ecbd01415f30df8ad4cd9c2c37ab"
+    }
+  ],
+  "totalFiles": 79930,
+  "scope": "All six production book packs imported using real Windows importer; every input entry hash checked and per-pack installed bytes sampled"
+}

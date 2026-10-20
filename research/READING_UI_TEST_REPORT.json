@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "checks": [
+    "1440: complete Fatiha verse stream with translations",
+    "1440: verse selection and focus preference persistence",
+    "1440: multiword translation retained as a phrase",
+    "1440: original grammar and rhetoric loaded",
+    "1440: dictionary root occurrence links back to canonical verse",
+    "1440: gzip book text and page navigation with citation",
+    "1440: book layout without horizontal overflow",
+    "390: complete Fatiha verse stream with translations",
+    "390: verse selection and focus preference persistence",
+    "390: multiword translation retained as a phrase",
+    "390: original grammar and rhetoric loaded",
+    "390: dictionary root occurrence links back to canonical verse",
+    "390: gzip book text and page navigation with citation",
+    "390: book layout without horizontal overflow"
+  ],
+  "errors": [],
+  "scope": "Browser UI using bundled sample full books; not Android-device test; exact local gzip fixture responses supplied because local HTTP gzip requests were intercepted as 204; native transport separately verified"
+}

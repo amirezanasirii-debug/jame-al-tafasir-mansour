@@ -1,0 +1,31 @@
+{
+  "source": "User-authorized installed JamiTafasir4 Lucene indices and Quran.db",
+  "surahs": 114,
+  "verses": 6236,
+  "words": 87876,
+  "translationGroups": 83100,
+  "basmalaRows": 112,
+  "basmalaWords": 448,
+  "basmalaTranslationGroups": 448,
+  "rawTranslationRecords": 83548,
+  "rawRootRecords": 6348,
+  "alignment": {
+    "basis": "Lucene Id/AyahId joined explicitly to QuranSurahVerses.QuranSurahVerseId; canonical surah/verse pair verified.",
+    "wordPositions": "words[].position is 1-based within source token sequence; groups[].start is 0-based offset into words array.",
+    "zeroGaps": true,
+    "zeroOverlaps": true,
+    "zeroOutOfRange": true,
+    "zeroUnparsedRootText": true
+  },
+  "limitations": [
+    "Meaning is attached to a translation group, sometimes multiple words. Preserve group spans.",
+    "Source segmentation can split conjunctions and differs from Mansour content.json whitespace. Never apply offsets to other Quran text.",
+    "Root labels are source analyses; no independent philological verification. Root conventions differ from QuranKalemat.",
+    "Some groups may have empty meanings; retain explicit unavailable state."
+  ],
+  "emptyMeanings": 0,
+  "sourceDigests": {
+    "word-translations.jsonl": "589db39d586a3edabdc16781818c01fa15841c504818db508e665d9858abb041",
+    "word-roots.jsonl": "002927c73736e7f5262c2bcdc6eadc27d415bdc50e52d2b8249064fcadaa899e"
+  }
+}

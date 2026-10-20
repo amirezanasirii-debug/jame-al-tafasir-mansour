@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "volumes": 3548,
+  "checkedStories": 2571650,
+  "checkedPages": 1735940,
+  "checkedImageReferences": 53166,
+  "sourceRecords": 2571650,
+  "unresolvedToc": 424,
+  "duplicateMain": 0,
+  "method": "SHA256 multiset of every original record including exact paragraphs and tags; repeated source IDs retained"
+}
