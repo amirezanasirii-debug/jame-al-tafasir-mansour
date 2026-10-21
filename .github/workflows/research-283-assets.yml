@@ -1,0 +1,34 @@
+name: Reconstruct verified research preview 3 assets
+
+on:
+  push:
+    branches: [research/2.8.0-preview.3]
+    paths: [.github/workflows/research-283-assets.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  reconstruct:
+    if: github.repository == 'amirezanasirii-debug/jame-al-tafasir-mansour'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: amirezanasirii-debug/jame-al-tafasir-mansour
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Require the unpublished draft
+        run: test "$(gh release view research-v2.8.0-preview.3 --json isDraft --jq .isDraft)" = true
+      - name: Download prior release and the pinned update package
+        run: |
+          mkdir -p base inputs reconstructed
+          gh release download research-v2.8.0-preview.2 --pattern 'Mansour-Research-2.8.0-preview.2-Android.apk' --pattern 'Mansour-Research-2.8.0-preview.2-Windows-Portable.zip' --pattern 'Mansour-Research-2.8.0-preview.2-Source.zip' --dir base
+          gh release download research-v2.8.0-preview.3 --pattern 'Mansour-Release-283-Build-Inputs.zip' --dir inputs
+      - name: Reconstruct and verify the exact tested bytes
+        run: |
+          python3 scripts/reconstruct-research-release.py --patch inputs/Mansour-Release-283-Build-Inputs.zip --sha256 5b6f4e4f626a0c6d8700be823676e93f4f5d374b0610ad5eefe3044cda6cc0e2 --base base --output reconstructed
+      - name: Upload verified installers and source to the draft
+        run: gh release upload research-v2.8.0-preview.3 reconstructed/*
