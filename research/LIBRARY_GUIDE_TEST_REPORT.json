@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "checks": [
+    "Library attachment button opens native ZIP picker; cancellation recovers",
+    "Library shortcut opens four-step download/import guide and focuses it",
+    "All six exact pack URLs and release page route through native external-browser handler",
+    "Unlisted external URL stays blocked",
+    "All import buttons disable during verification and recover afterwards",
+    "Guide and long pack filenames fit 390px mobile viewport"
+  ],
+  "externalLinks": 7,
+  "errors": [],
+  "scope": "Packaged Windows Electron using real navigation and import IPC; OS browser launch and ZIP picker stubbed to avoid downloads or user dialogs. Mobile viewport is not an Android-device test."
+}

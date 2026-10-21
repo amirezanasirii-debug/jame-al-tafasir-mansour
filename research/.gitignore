@@ -16,3 +16,5 @@ dist/*
 !dist/research-core.mjs
 
 !dist/*.mjs
+
+!dist/library-downloads.json

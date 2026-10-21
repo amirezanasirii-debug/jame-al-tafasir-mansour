@@ -1,4 +1,4 @@
-> پیش‌نمایش تازهٔ میز پژوهش منصور ۲.۸ برای Windows و Android در [research/README.md](research/README.md) مستند شده است. کد این شاخه افزودهٔ مستقل به سورس قبلی است؛ فایل‌های انتشار در [GitHub Releases](https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/tag/research-v2.8.0-preview.2) قرار می‌گیرند.
+> پیش‌نمایش تازهٔ میز پژوهش منصور ۲.۸ برای Windows و Android در [research/README.md](research/README.md) مستند شده است. کد این شاخه افزودهٔ مستقل به سورس قبلی است؛ فایل‌های انتشار در [GitHub Releases](https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/tag/research-v2.8.0-preview.3) قرار می‌گیرند.
 
 # جامع‌التفاسیر منصور
 

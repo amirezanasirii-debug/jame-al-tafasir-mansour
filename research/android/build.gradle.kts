@@ -22,8 +22,8 @@ android {
         applicationId = "org.jamealtafasir.mobile"
         minSdk = 24
         targetSdk = 36
-        versionCode = 20800
-        versionName = "2.8.0-preview.2"
+        versionCode = 20801
+        versionName = "2.8.0-preview.3"
 
         vectorDrawables.useSupportLibrary = false
     }

@@ -51,7 +51,14 @@ public final class MainActivity extends Activity {
             "https://tanzil.net",
             "https://tanzil.net/docs/quran_metadata",
             "https://quranenc.com/fa/browse/persian_ih",
-            "https://quranenc.com/ar/browse/arabic_moyassar"
+            "https://quranenc.com/ar/browse/arabic_moyassar",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/tag/research-v2.8.0-preview.2",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-001-1548d5a15670.zip",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-002-adcbf09fb3ce.zip",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-003-cbd8461f09e1.zip",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-004-5817f992c773.zip",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-005-7d0dc35c5b52.zip",
+            "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/releases/download/research-v2.8.0-preview.2/Mansour-Books-006-44ac9aa612b7.zip"
     ));
 
     private WebView webView;
