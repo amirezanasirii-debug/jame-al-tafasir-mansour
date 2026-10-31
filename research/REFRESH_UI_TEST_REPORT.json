@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "checks": [
+    "Home displays original user artwork and cream/emerald design",
+    "Menu opens, traps modal interaction and closes with Escape",
+    "Independent note survives autosave and reload",
+    "Untrusted note text cannot execute markup",
+    "Star, trash and restore preserve the note",
+    "Notebook backup exports actual stored content",
+    "Exact card copies and local-only survey saves and exports",
+    "Home, notebook, survey and original reader fit 390px viewport",
+    "Reduced-motion preference disables drawer motion"
+  ],
+  "errors": [],
+  "scope": "Installed Edge browser; desktop and mobile viewport. Native Windows/Android builds not tested."
+}

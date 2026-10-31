@@ -24,6 +24,7 @@ def main():
     parser.add_argument('--base', type=Path, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--verify-only', action='store_true')
+    parser.add_argument('--target-tag', default='research-v2.8.0-preview.3')
     args = parser.parse_args()
     assert sha(args.patch) == args.sha256, 'Update package hash mismatch'
     if not args.verify_only:
@@ -32,7 +33,7 @@ def main():
     with zipfile.ZipFile(args.patch) as patch:
         manifest = json.loads(patch.read('manifest.json'))
         assert manifest['format'] == 'mansour-exact-release-delta-v1'
-        assert manifest['targetTag'] == 'research-v2.8.0-preview.3'
+        assert manifest['targetTag'] == args.target_tag
         for item in manifest['files']:
             base = args.base / filename(item['baseFile'])
             assert sha(base) == item['baseSha256'], 'Base file hash mismatch'

@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "checks": [
+    "Native jame protocol loads new home and user artwork",
+    "Native notebook autosave survives reload",
+    "Native clipboard bridge receives exact donation card; OS clipboard stubbed",
+    "Native survey stores locally"
+  ],
+  "scope": "Actual Electron runtime; isolated profile; no physical Android run"
+}
