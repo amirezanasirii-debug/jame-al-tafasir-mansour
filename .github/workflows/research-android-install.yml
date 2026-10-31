@@ -1,0 +1,41 @@
+name: Android installation regression
+on:
+  push:
+    branches: [research/2.9-refresh]
+    paths: [.github/workflows/research-android-install.yml, scripts/android-install-regression.sh]
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 30, 36]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: amirezanasirii-debug/jame-al-tafasir-mansour
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare Android emulator
+        env:
+          API: ${{ matrix.api }}
+        run: |
+          sudo chmod 666 /dev/kvm
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platform-tools' 'emulator' "system-images;android-$API;google_apis;x86_64"
+          echo no | avdmanager create avd --name mansour-install --package "system-images;android-$API;google_apis;x86_64" --force
+          "$ANDROID_HOME/emulator/emulator" -avd mansour-install -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 3072 -partition-size 4096 > emulator.log 2>&1 &
+          adb wait-for-device
+          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 3; done'
+          adb shell input keyevent 82
+      - name: Test clean installation and upgrade from previous release
+        run: bash scripts/android-install-regression.sh
+      - name: Diagnostics
+        if: always()
+        run: |
+          tail -40 emulator.log || true
+          adb logcat -d -s PackageManager PackageInstaller AndroidRuntime installd || true
