@@ -23,9 +23,9 @@ jobs:
         run: |
           test "$(gh release view research-v2.9.0-preview.2 --json isDraft --jq .isDraft)" = true
           mkdir -p base inputs reconstructed
-          gh release download research-v2.9.0-preview.1 --pattern '*Android.apk' --dir base
+          gh release download research-v2.9.0-preview.1 --pattern '*Android.apk' --pattern '*Windows-Portable.zip' --dir base
           gh release download research-v2.9.0-preview.2 --pattern 'Mansour-Release-291-Build-Inputs.zip' --dir inputs
-          python3 scripts/reconstruct-research-release.py --patch inputs/Mansour-Release-291-Build-Inputs.zip --sha256 42ab612a12c74c3ea09de9a373e07e379364a14a4684309f79212b7864a98ba1 --base base --output reconstructed --target-tag research-v2.9.0-preview.2
+          python3 scripts/reconstruct-research-release.py --patch inputs/Mansour-Release-291-Build-Inputs.zip --sha256 9f6b49e627b473cbab68fd5094ab2db302ff21cf2c5d881f7990da66359601ad --base base --output reconstructed --target-tag research-v2.9.0-preview.2
           gh release upload research-v2.9.0-preview.2 reconstructed/* --clobber
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
