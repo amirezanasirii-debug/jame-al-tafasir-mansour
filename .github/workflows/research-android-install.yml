@@ -5,9 +5,20 @@ on:
     paths: [.github/workflows/research-android-install.yml, scripts/android-install-regression.sh]
 permissions:
   contents: read
+  actions: read
 jobs:
+  diagnose_previous:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Recover prior emulator diagnostics
+        run: |
+          gh api repos/amirezanasirii-debug/jame-al-tafasir-mansour/actions/jobs/124522727260/logs > previous.log
+          python3 -c 'from pathlib import Path; t=Path("previous.log").read_text(); print("::warning title=Previous emulator log::"+t[-9000:].replace("%","%25").replace("\r","%0D").replace("\n","%0A"))'
   install:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
@@ -42,4 +53,5 @@ jobs:
         if: always()
         run: |
           tail -40 emulator.log || true
+          python3 -c 'from pathlib import Path; p=Path("emulator.log"); print("::warning title=Emulator log::"+p.read_text()[-7000:].replace("%","%25").replace("\r","%0D").replace("\n","%0A"))' || true
           timeout 15 adb logcat -d -s PackageManager PackageInstaller AndroidRuntime installd || true
