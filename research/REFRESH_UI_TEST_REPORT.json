@@ -9,6 +9,7 @@
     "Notebook backup exports actual stored content",
     "Exact card copies and local-only survey saves and exports",
     "Home, notebook, survey and original reader fit 390px viewport",
+    "All ten tool destinations open without horizontal overflow at 390px; drawer motion is 240ms",
     "Reduced-motion preference disables drawer motion"
   ],
   "errors": [],

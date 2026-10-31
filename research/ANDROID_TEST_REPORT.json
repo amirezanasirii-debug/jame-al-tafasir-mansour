@@ -1,10 +1,15 @@
 {
-  "version": "2.9.0-preview.1",
-  "versionCode": 20900,
+  "version": "2.9.0-preview.2",
+  "versionCode": 20901,
   "build": "passed",
-  "lint": "No issues found",
+  "lint": "passed",
+  "apkSha256": "fbd1c800f6a8c3bca153fff2860dc0e5091c97e519bff6e72be9c2eff63e49ab",
   "certificateSha256": "ecde148bd8ad34be6148731c888228920772364ab79fa8de24046c8bab706d73",
-  "apkSha256": "ff2065fab0818ee5ef597a840cec5617b79cbbd8d86bd07d82b4e2076f034854",
-  "updatedAssets": "byte-exact",
-  "deviceTested": false
+  "emulatorApis": [24, 30, 36],
+  "cleanInstall": "passed on all three APIs",
+  "upgradeFromPreview283": "passed on all three APIs",
+  "launch": "passed on all three APIs",
+  "workflow": "https://github.com/amirezanasirii-debug/jame-al-tafasir-mansour/actions/runs/41242011781",
+  "physicalDeviceTested": false,
+  "assetComparison": "Only refresh.css changed among 7540 app assets relative to preview 1"
 }
