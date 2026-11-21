@@ -1,0 +1,82 @@
+name: Mansour 2.10 release verification
+on:
+  push:
+    branches: [research/2.10-release]
+    paths: [.github/workflows/research-210-install.yml, scripts/android-install-210.sh]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  candidate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: amirezanasirii-debug/jame-al-tafasir-mansour
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Reconstruct the signed candidate in the draft
+        run: |
+          test "$(gh release view research-v2.10.0 --json isDraft --jq .isDraft)" = true
+          mkdir -p base inputs reconstructed
+          gh release download research-v2.8.0-preview.3 --pattern '*Android.apk' --pattern '*Windows-Portable.zip' --dir base
+          gh release download research-v2.10.0 --pattern 'Mansour-2.10-build-inputs.zip' --dir inputs
+          python3 scripts/reconstruct-research-release.py --patch inputs/Mansour-2.10-build-inputs.zip --sha256 9e22ded4752d74259e5282cc7ead20068b838a61f9724a44c1510ac90876a613 --base base --output reconstructed --target-tag research-v2.10.0
+          gh release upload research-v2.10.0 reconstructed/* --clobber
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: signed-install-candidate
+          path: reconstructed/*.apk
+          retention-days: 3
+  install:
+    needs: candidate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 30, 36]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: amirezanasirii-debug/jame-al-tafasir-mansour
+      ANDROID_USER_HOME: ${{ github.workspace }}/.test-android
+      ANDROID_EMULATOR_HOME: ${{ github.workspace }}/.test-android
+      ANDROID_AVD_HOME: ${{ github.workspace }}/.test-android/avd
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Prepare Android emulator
+        timeout-minutes: 8
+        env:
+          API: ${{ matrix.api }}
+        run: |
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          sudo chmod 666 /dev/kvm
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager 'platform-tools' 'emulator' "system-images;android-$API;google_apis;x86_64"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd --name mansour-install --path "$ANDROID_AVD_HOME/mansour-install.avd" --package "system-images;android-$API;google_apis;x86_64" --force
+          printf 'avd.ini.encoding=UTF-8\npath=%s\ntarget=android-%s\n' "$ANDROID_AVD_HOME/mansour-install.avd" "$API" > "$ANDROID_AVD_HOME/mansour-install.ini"
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+          "$ANDROID_HOME/emulator/emulator" -avd mansour-install -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -memory 3072 -partition-size 4096 > emulator.log 2>&1 &
+          if ! timeout 90 adb wait-for-device; then cat emulator.log; exit 1; fi
+          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 3; done'
+          adb shell input keyevent 82
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: signed-install-candidate
+          path: apks
+      - name: Test clean installation and upgrade from previous release
+        run: bash scripts/android-install-210.sh
+      - name: Diagnostics
+        if: always()
+        run: |
+          tail -40 emulator.log || true
+          python3 -c 'from pathlib import Path; p=Path("emulator.log"); print("::warning title=Emulator log::"+p.read_text()[-7000:].replace("%","%25").replace("\r","%0D").replace("\n","%0A"))' || true
+          timeout 15 adb logcat -d -s PackageManager PackageInstaller AndroidRuntime installd || true
