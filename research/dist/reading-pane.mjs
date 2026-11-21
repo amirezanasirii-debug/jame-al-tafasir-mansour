@@ -8,7 +8,7 @@ export function createReadingPane({content,preferences,selected,translation,load
  mode.value=preferences.readingMode;show.checked=preferences.inlineTranslation;
  function applyFocus(){document.body.classList.toggle('focus-reading',!!preferences.focusReading);focus.setAttribute('aria-pressed',String(!!preferences.focusReading));focus.textContent=preferences.focusReading?'بازگشت به پژوهش':'مطالعهٔ متمرکز';}
  applyFocus();
- mode.onchange=()=>{preferences.readingMode=mode.value;if(mode.value==='single'){preferences.focusReading=false;applyFocus();}remember();render().catch(showError)};
+ mode.onchange=()=>{delete preferences.studyRange;preferences.readingMode=mode.value;if(mode.value==='single'){preferences.focusReading=false;applyFocus();}remember();render().catch(showError)};
  show.onchange=()=>{preferences.inlineTranslation=show.checked;remember();render().catch(showError)};
  focus.onclick=()=>{preferences.focusReading=!preferences.focusReading;if(preferences.focusReading&&preferences.readingMode==='single'){preferences.readingMode='surah';mode.value='surah'}applyFocus();remember();render().catch(showError)};
  $('stream-prev').onclick=()=>move(-1);$('stream-next').onclick=()=>move(1);
@@ -17,9 +17,10 @@ export function createReadingPane({content,preferences,selected,translation,load
  function highlight(){const a=selected();for(const row of list.querySelectorAll('[data-ayah]')){const active=Number(row.dataset.ayah)===a.id;row.classList.toggle('selected',active);row.querySelector('.verse-select').setAttribute('aria-current',active?'true':'false');}const row=list.querySelector(`[data-ayah="${a.id}"]`);if(row&&!preferences.focusReading)list.scrollTop=Math.max(0,row.offsetTop-list.offsetTop-10);}
  async function render(){const run=++ticket,a=selected(),type=preferences.readingMode;
   $('reading-pane').hidden=type==='single';if(type==='single')return;
-  const choice=translation(),key=[type,type==='page'?a.page:a.surah_id,choice,preferences.inlineTranslation].join('|');
+  const range=preferences.studyRange, scoped=type==='surah'&&range?.[0]===a.surah_id&&range[2]>range[1]&&a.number>=range[1]&&a.number<=range[2];
+  const choice=translation(),key=[type,type==='page'?a.page:a.surah_id,choice,preferences.inlineTranslation,scoped&&range.join('-')].join('|');
   if(key===renderedKey){highlight();return;}
-  rows=content.ayahs.filter(v=>type==='page'?v.page===a.page:v.surah_id===a.surah_id);
+  rows=content.ayahs.filter(v=>type==='page'?v.page===a.page:v.surah_id===a.surah_id&&(!scoped||(v.number>=range[1]&&v.number<=range[2])));
   $('stream-heading').textContent=type==='page'?`صفحهٔ ${fa(a.page)} · ${fa(rows.length)} آیه`:`سورهٔ ${content.surahs.find(s=>s.id===a.surah_id).name_ar} · ${fa(rows.length)} آیه`;
   $('stream-prev').disabled=type==='page'?a.page===1:a.surah_id===1;$('stream-next').disabled=type==='page'?a.page===604:a.surah_id===114;
   const imports=new Map();if(preferences.inlineTranslation&&choice.startsWith('noor:'))for(const s of new Set(rows.map(v=>v.surah_id)))imports.set(s,await load(`research-data/${s}.json`));

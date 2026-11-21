@@ -63,7 +63,7 @@ public final class MainActivity extends Activity {
 
     private WebView webView;
     private BookPackStore bookPacks;
-    private String pendingExport;
+    private byte[] pendingExport;
     private ValueCallback<Uri[]> fileCallback;
     private OnBackInvokedCallback backInvokedCallback;
 
@@ -171,7 +171,7 @@ public final class MainActivity extends Activity {
                     Map<String, String> headers = new HashMap<>();
                     headers.put(
                             "Content-Security-Policy",
-                            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+                            "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
                                     + "font-src 'self'; img-src 'self' data:; connect-src 'self'; "
                                     + "media-src 'self'; worker-src 'self'; object-src 'none'; "
                                     + "base-uri 'none'; frame-src 'none'"
@@ -276,14 +276,14 @@ public final class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 83) { if(resultCode == RESULT_OK && data != null && data.getData() != null) { Uri selected=data.getData(); new Thread(() -> bookPacks.importUri(selected), "mansour-book-import").start(); } else bookPacks.cancel(); return; }
         if (requestCode == 82) {
-            String payload = pendingExport;
+            byte[] payload = pendingExport;
             pendingExport = null;
             if (resultCode == RESULT_OK && data != null && data.getData() != null && payload != null) {
                 Uri destination = data.getData();
                 new Thread(() -> {
                     try (OutputStream output = getContentResolver().openOutputStream(destination, "wt")) {
                         if (output == null) throw new IOException("Cannot open destination");
-                        output.write(payload.getBytes(StandardCharsets.UTF_8));
+                        output.write(payload);
                         runOnUiThread(() -> Toast.makeText(this, "فایل ذخیره شد", Toast.LENGTH_SHORT).show());
                     } catch (IOException exception) {
                         runOnUiThread(() -> Toast.makeText(this, "ذخیرهٔ فایل انجام نشد؛ دوباره تلاش کنید", Toast.LENGTH_LONG).show());
@@ -306,11 +306,16 @@ public final class MainActivity extends Activity {
         @JavascriptInterface
         public void saveDocument(String name, String body, String type) {
             if (body == null || body.length() > 20000000 || name == null) return;
-            String mime = name.endsWith(".json") ? "application/json" : "text/markdown";
-            String safeName = name.endsWith(".json") ? "mansour-research-backup.json" : "mansour-research-notes.md";
+            boolean word = name.equals("mansour-note.docx");
+            boolean png = name.equals("mansour-ayah.png");
+            String mime = word ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : png ? "image/png" : name.endsWith(".json") ? "application/json" : "text/markdown";
+            String safeName = name.matches("mansour-[a-z-]+\\.(json|md)") || word || png ? name : "mansour-export.txt";
+            byte[] bytes;
+            try { bytes = word || png ? android.util.Base64.decode(body, android.util.Base64.DEFAULT) : body.getBytes(StandardCharsets.UTF_8); }
+            catch (IllegalArgumentException e) { return; }
             runOnUiThread(() -> {
                 if (pendingExport != null) return;
-                pendingExport = body;
+                pendingExport = bytes;
                 Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType(mime);
@@ -320,6 +325,14 @@ public final class MainActivity extends Activity {
                     pendingExport = null;
                     Toast.makeText(MainActivity.this, "انتخابگر فایل در دسترس نیست", Toast.LENGTH_LONG).show();
                 }
+            });
+        }
+
+        @JavascriptInterface
+        public void keepAwake(boolean enabled) {
+            runOnUiThread(() -> {
+                if (enabled) getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             });
         }
 
@@ -442,6 +455,7 @@ public final class MainActivity extends Activity {
 
     private static String mimeType(String path) {
         if (path.endsWith(".html")) return "text/html";
+        if (path.endsWith(".wasm")) return "application/wasm";
         if (path.endsWith(".js") || path.endsWith(".mjs")) return "application/javascript";
         if (path.endsWith(".css")) return "text/css";
         if (path.endsWith(".json")) return "application/json";

@@ -20,4 +20,6 @@ dist/*
 !dist/library-downloads.json
 
 !dist/refresh.css
+!dist/study.css
+!dist/vendor/
 !dist/mansour-brand.png

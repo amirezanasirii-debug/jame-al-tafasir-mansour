@@ -1,0 +1,92 @@
+body[data-theme="ivory"] {
+  --bg: #faf7f2;
+  --panel: #ffffff;
+  --soft: #f2ece1;
+  --accent: #0b3b34;
+  --navy: #0b1f3a;
+  --gold: #c9a24d;
+  --quran: #111827;
+  --translation: #2d4a43;
+  --text: #1a202c;
+  --muted: #5a6577;
+  --line: #e2d9c8;
+  --highlight: #ffefcd;
+}
+body[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --panel: #faf3e3;
+  --soft: #eae0c8;
+  --accent: #14453d;
+  --navy: #3b2f2f;
+  --gold: #a67c2e;
+  --quran: #2b2118;
+  --translation: #4e3b2b;
+  --text: #362a1f;
+  --muted: #6e5b49;
+  --line: #d9ccb2;
+  --highlight: #edddb9;
+}
+body[data-theme="midnight"] {
+  --bg: #0f1722;
+  --panel: #16202e;
+  --soft: #1c293b;
+  --accent: #13b99b;
+  --navy: #0b1f3a;
+  --gold: #e8c46a;
+  --quran: #f5efe6;
+  --translation: #a8d8c8;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --line: #263549;
+  --highlight: #3d382a;
+}
+body[data-theme="amoled"] {
+  --bg: #000000;
+  --panel: #0e1116;
+  --soft: #161b22;
+  --accent: #18a98e;
+  --navy: #111827;
+  --gold: #d4af37;
+  --quran: #e6e1d6;
+  --translation: #9ec9bc;
+  --text: #d4dce4;
+  --muted: #8b949e;
+  --line: #21262d;
+  --highlight: #332e19;
+}
+body[data-theme="high-contrast"] {
+  --bg: #ffffff;
+  --panel: #ffffff;
+  --soft: #f0f0f0;
+  --accent: #00332c;
+  --navy: #000000;
+  --gold: #8a5a00;
+  --quran: #000000;
+  --translation: #111111;
+  --text: #000000;
+  --muted: #222222;
+  --line: #000000;
+  --highlight: #fff3b0;
+}
+body[data-theme=forest]{--accent:#135b40;--soft:#dcebe1}body[data-theme=mist]{--accent:#705c92;--soft:#ebe6f4}body[data-theme=violet]{--accent:#633da4;--soft:#ece4f9}body[data-theme=ocean]{--accent:#066a70;--soft:#ddf1f1}body[data-theme=mono]{--accent:#242a2a;--soft:#e9eceb}
+.topbar{position:sticky;top:0;z-index:5;background:var(--bg);flex-wrap:wrap;padding:6px 0}
+.study-nav{display:flex;gap:5px;flex-wrap:wrap}.study-nav button{padding:4px 10px}
+.verse-dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:18px;max-width:min(95vw,510px);max-height:85vh;overflow:auto}
+.verse-dialog form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.verse-dialog label{display:grid;gap:4px}.verse-dialog h2,.verse-dialog p{grid-column:1/-1}
+.verse-dialog::backdrop{background:#091018aa}.verse-dialog input,.verse-dialog select{width:100%}
+.quran-text,.stream-arabic{font-size:var(--qSize,32px);color:var(--quran,var(--text));letter-spacing:0;line-height:2.3}
+.translation-text,.stream-translation{font-size:var(--tSize,19px);color:var(--translation,var(--text))}
+.source-text,.book-paper{font-size:var(--bSize,19px)}
+.verse-row.study-range,.verse-row.selected{background:var(--highlight,var(--soft));border-inline-start:4px solid var(--gold)}
+body[data-translation=selected] .verse-row:not(.selected) .stream-translation{display:none}
+body.dark button.primary{color:var(--bg)}body[data-theme=high-contrast] button.primary{color:white}
+.verse-dialog :focus-visible,:focus-visible{outline-color:var(--accent)}
+#reading-pane,.study-grid{scroll-margin-top:130px}
+@media(min-width:800px){body[data-translation=parallel] .verse-row{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:12px}body[data-translation=parallel] .verse-select,body[data-translation=parallel] .verse-study{grid-column:1/-1;justify-self:start}}
+@media(max-width:620px){.study-nav{width:100%}.study-nav button{flex:1}.topbar h1{font-size:15px}.topbar{gap:3px}}
+@media(max-height:480px){.topbar{position:static}}
+#fts-panel form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}#fts-panel label,.verse-dialog>label{display:grid;gap:5px}#fts-panel summary,details>summary{cursor:pointer;font-weight:700;padding:10px}.fts-results{max-height:55vh;overflow:auto}.quick-themes{display:flex;flex-wrap:wrap;gap:5px}
+body[data-theme=midnight] .primary,body[data-theme=amoled] .primary{color:#081817}
+@media(max-width:640px){.verse-dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:20px 20px 0 0;padding:18px}.study-nav button,.reading-controls button{min-height:44px}#fts-panel label{width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:0s!important;animation-duration:0s!important}}
+@media print{.study-nav,.topbar,.reading-controls{display:none!important}}
