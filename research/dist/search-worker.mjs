@@ -68,7 +68,7 @@ async function lookup(part, expression, remaining) {
       await cached(part.key, s.capi.sqlite3_js_db_export(db.pointer));
     }
     const rows = db.selectObjects('SELECT ref, original, snippet(docs,0,\'\',\'\',\'…\',18) AS excerpt FROM docs WHERE docs MATCH ? ORDER BY rank LIMIT ?', [expression, remaining]);
-    return rows.map(r => ({ref:JSON.parse(r.ref), excerpt:part.type==='quran'?r.original:r.excerpt,part}));
+    return rows.map(r => ({ref:JSON.parse(r.ref),original:r.original, excerpt:part.type==='quran'?r.original:r.excerpt,part}));
   } finally { db.close(); }
 }
 self.onmessage = async ({data:{parts, expression}}) => {

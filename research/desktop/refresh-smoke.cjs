@@ -1,8 +1,8 @@
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 module.exports=async(win,app,root)=>{
- const checks=[],{clipboard}=require('electron');let copied='';clipboard.writeText=text=>{copied=text;};
+ const started=Date.now(),metrics={};const checks=[],{clipboard}=require('electron');let copied='';clipboard.writeText=text=>{copied=text;};
  const js=async code=>{try{return await win.webContents.executeJavaScript(code)}catch(e){throw Error(code+' | '+await win.webContents.executeJavaScript('JSON.stringify({startup:document.body.dataset.error,buttons:[...document.querySelectorAll(".study-nav button")].map(b=>b.textContent)})')+' | '+e.message)}},wait=async code=>{const end=Date.now()+30000;while(Date.now()<end){if(await js(code))return;await new Promise(r=>setTimeout(r,100));}throw Error('Timed out '+code);};
- try{await wait("document.body.dataset.ready==='true'");assert(await js("!document.getElementById('home').hidden"));checks.push('Native jame protocol loads new home and user artwork');
+ try{await wait("document.body.dataset.ready==='true'");metrics.readyMs=Date.now()-started;if(await fs.stat(path.join(root,'previous-profile')).catch(()=>null)){assert(await js("JSON.parse(localStorage.getItem('mansour-notebook-v1')).notes.some(n=>n.text==='Offline persistence')"));checks.push('2.9 notebook preserved in a profile created by the previous desktop application')}assert(await js("!document.getElementById('home').hidden"));checks.push('Native jame protocol loads new home and user artwork');
  await js("document.querySelector('[data-go=notebook]').click();document.getElementById('nb-new').click();document.getElementById('nb-title').value='Native notebook';document.getElementById('nb-title').dispatchEvent(new Event('input'));document.getElementById('nb-text').value='Offline persistence';document.getElementById('nb-text').dispatchEvent(new Event('input'))");await wait("document.getElementById('nb-save').textContent.includes('ذخیره شد')");await win.reload();await wait("document.body.dataset.ready==='true'");await js("document.querySelector('[data-go=notebook]').click()");assert.equal(await js("document.getElementById('nb-text').value"),'Offline persistence');checks.push('Native notebook autosave survives reload');
  await js("document.getElementById('tools-menu').click();[...document.querySelectorAll('#drawer-items button')].find(b=>b.textContent.includes('نظرسنجی')).click();document.getElementById('copy-support-card').click()");await new Promise(r=>setTimeout(r,200));assert.equal(copied,'5022291514618634');checks.push('Native clipboard bridge receives exact donation card; OS clipboard stubbed');
  await js("document.getElementById('feedback-rating').value='4';document.getElementById('feedback-text').value='Native feedback';document.getElementById('feedback-form').requestSubmit()");assert.equal(await js("JSON.parse(localStorage.getItem('mansour-feedback-v1')).rating"),4);checks.push('Native survey stores locally');
@@ -13,21 +13,31 @@ module.exports=async(win,app,root)=>{
  assert.equal(await js("document.body.dataset.theme"),'amoled');checks.push('AMOLED theme applies');
  const wordBytes=await js("(async()=>{const {makeWord}=await import('./export-study.mjs');return Array.from(new Uint8Array(await (await makeWord('عنوان','## پژوهش\\nمنبع: قرآن کریم',['قرآن کریم'])).arrayBuffer()))})()");
  assert.equal(Buffer.from(wordBytes).readUInt32LE(),0x04034b50);await fs.writeFile(path.join(root,'note.docx'),Buffer.from(wordBytes));checks.push('Offline RTL DOCX generated');
- await js("document.querySelector('[data-go=library]').click();const s=document.querySelector('#fts-panel form');s.elements.scope.value='quran';s.elements.term.value='رحیم';s.requestSubmit()");
+ const queryStart=Date.now();await js("document.querySelector('[data-go=library]').click();const s=document.querySelector('#fts-panel form');s.elements.scope.value='quran';s.elements.term.value='رحیم';s.requestSubmit()");
  await wait("document.querySelector('#fts-panel .search-item')||document.querySelector('#fts-panel [name=stop]').disabled");
  assert(await js("Boolean(document.querySelector('#fts-panel .search-item'))"),await js("document.querySelector('#fts-panel [role=status]').textContent"));
- await js("document.querySelector('#fts-panel .search-item').click()");
+ metrics.firstSearchResultMs=Date.now()-queryStart;await js("document.querySelector('#fts-panel .search-item').click()");
  assert(await js("!document.querySelector('#reader').hidden"));checks.push('SQLite FTS5 search opens original verse');
  if(await fs.stat(path.join(root,'book-fixture')).catch(()=>null)){
    await js("document.querySelector('[data-go=library]').click();const bf=document.querySelector('#fts-panel form');bf.elements.scope.value='book';bf.elements.author.value='الخوئي';bf.elements.term.value='الله';bf.requestSubmit()");
    await wait("document.querySelector('#fts-panel .search-item')||document.querySelector('#fts-panel [name=stop]').disabled");
    assert(await js("Boolean(document.querySelector('#fts-panel .search-item'))"),await js("document.querySelector('#fts-panel [role=status]').textContent"));
-   await js("document.querySelector('#fts-panel .search-item').click()");await wait("document.querySelector('#book-citation').textContent.includes('صفحه')");checks.push('Verified installed book text search and page navigation using a volume from book pack 1');
+   metrics.firstSearchResultMs=Date.now()-queryStart;await js("document.querySelector('#fts-panel .search-item').click()");await wait("document.querySelector('#book-citation').textContent.includes('صفحه')");checks.push('Verified installed book text search and page navigation using a volume from book pack 1');
  }
+ await js("document.querySelector('.folio-modes button:nth-child(2)').click();document.querySelector('#tafsir-one').value='moyassar';document.querySelector('#tafsir-one').dispatchEvent(new Event('change'))");
+ await wait("document.querySelector('.capture-source[data-source=moyassar]')");
+ await js("document.querySelector('.capture-source[data-source=moyassar]').click()");
+ assert(await js("!document.querySelector('#notebook').hidden && document.querySelector('#nb-text').value.includes('منبع:')"));
+ assert(await js("JSON.parse(localStorage.getItem('mansour-notebook-v1')).notes.some(n=>n.citation?.source==='moyassar')"));checks.push('Verse to original tafsir to persisted citation and notebook');
+ const cited=await js("(async()=>{const t=document.querySelector('#nb-text').value;const {makeWord}=await import('./export-study.mjs');return Array.from(new Uint8Array(await (await makeWord(document.querySelector('#nb-title').value,t,t.split('\\n').filter(l=>l.startsWith('منبع:')))).arrayBuffer()))})()");
+ await fs.writeFile(path.join(root,'cited.docx'),Buffer.from(cited));
+ await js("[...document.querySelectorAll('#nb-editor button')].find(b=>b.textContent==='بازکردن منبع فیش').click()");
+ await wait("!document.querySelector('#reader').hidden && document.body.dataset.mode==='investigate' && document.querySelector('.capture-source[data-source=moyassar]')");
+ await fs.writeFile(path.join(root,'research.png'),(await win.webContents.capturePage()).toPNG());checks.push('Reopen notebook source in same reading context and export cited document');
  await win.webContents.debugger.attach('1.3');
  await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  await js("document.querySelector('.study-nav button').click()");
- assert(await js("document.documentElement.scrollWidth <= window.innerWidth+1"));await fs.writeFile(path.join(root,'mobile.png'),(await win.webContents.capturePage()).toPNG());checks.push('390px home layout fits viewport');
- await fs.mkdir(root,{recursive:true});await fs.writeFile(path.join(root,'report.json'),JSON.stringify({ok:true,checks,scope:'Actual Electron runtime; isolated profile; no physical Android run'},null,2));app.exit(0);
+ assert(await js("document.documentElement.scrollWidth <= window.innerWidth+1"));await js("window.scrollTo(0,0);document.getElementById('toast').hidden=true");await new Promise(r=>setTimeout(r,200));await fs.writeFile(path.join(root,'mobile.png'),(await win.webContents.capturePage()).toPNG());checks.push('390px home layout fits viewport');
+ await fs.mkdir(root,{recursive:true});await fs.writeFile(path.join(root,'report.json'),JSON.stringify({ok:true,checks,metrics,scope:'Actual Electron runtime; isolated profile; no physical Android run'},null,2));app.exit(0);
  }catch(e){await fs.mkdir(root,{recursive:true});await fs.writeFile(path.join(root,'report.json'),JSON.stringify({ok:false,checks,error:e.stack},null,2));app.exit(1);}
 };

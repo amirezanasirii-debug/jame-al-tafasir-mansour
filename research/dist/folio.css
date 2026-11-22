@@ -1,0 +1,44 @@
+/* The verse, its evidence and the open notebook share a stable reading position. */
+.living-folio{--folio-edge:var(--line);--folio-ink:var(--text);--folio-metal:var(--gold);--folio-duration:160ms;--folio-ease:cubic-bezier(.2,.75,.25,1)}
+.living-folio main{max-width:1620px;padding-inline:clamp(14px,3vw,58px)}
+.folio-location{font-variant-numeric:tabular-nums;font-weight:700;border-inline-start:2px solid var(--folio-metal)}
+.folio-modes{position:fixed;inset:auto 50% max(12px,env(safe-area-inset-bottom));transform:translateX(50%);display:flex;gap:4px;z-index:8;border:1px solid var(--folio-edge);border-radius:16px;padding:4px;background:var(--panel);box-shadow:0 4px 16px #0002}
+.folio-modes button{min-height:44px;min-width:82px;border:0;background:transparent;color:var(--text);font-weight:700}
+.folio-modes [aria-pressed=true]{background:var(--accent);color:var(--panel)}
+.living-folio.dark .folio-modes [aria-pressed=true]{color:#061a17}
+.folio-modes .mobile-trail{display:none}
+.living-folio .mansour-home:not([hidden]){display:grid;grid-template-columns:minmax(0,1.75fr) minmax(200px,.75fr);align-items:start;gap:clamp(18px,4vw,62px);padding:clamp(18px,3vw,46px) 0 90px;background:none;box-shadow:none;border:0}
+.living-folio .welcome-copy{grid-column:1;grid-row:1/4;padding:0;min-width:0}
+.living-folio .welcome-copy h2{font-size:clamp(26px,4vw,56px);line-height:1.6;margin:5px 0}
+.living-folio .welcome-copy .home-verse{font:var(--qSize,32px)/2.25 'Amiri Quran','Scheherazade New',serif;color:var(--quran,var(--text));max-height:11em;overflow:auto;border-block:1px solid var(--folio-edge);margin:15px 0;padding:16px 0;letter-spacing:0}
+.living-folio .welcome-art{grid-column:2;grid-row:1;display:flex;align-items:center;gap:12px;margin:0;padding:0;background:none;box-shadow:none;border:0}
+.living-folio .welcome-art img{width:58px;height:58px;object-fit:contain;border-radius:13px}
+.living-folio .welcome-art figcaption{position:static;color:var(--muted);background:none;font-size:13px;line-height:1.7}
+.folio-recent{grid-column:2;grid-row:2;border-inline-start:2px solid var(--folio-metal);padding-inline-start:16px}
+.folio-recent h3,.folio-spine h3,.folio-draft summary{margin:0 0 10px}
+.folio-recent button,.folio-spine button{display:block;width:100%;text-align:start;background:none;border:0;border-block-end:1px solid var(--line);border-radius:0;line-height:1.65;min-height:44px;padding:7px 2px;overflow-wrap:anywhere}
+.folio-atlas-wrap,.folio-controls,.folio-draft{border-block:1px solid var(--folio-edge);margin:15px 0;padding:6px 0}
+.living-folio .folio-atlas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0}
+.living-folio .folio-atlas button{border:0;border-block-end:1px solid var(--line);border-radius:0;background:transparent;text-align:start;min-height:44px}
+.living-folio .study-grid{display:grid;grid-template-columns:minmax(105px,.28fr) minmax(0,1fr) minmax(200px,var(--dock-width,34%));align-items:start;gap:clamp(10px,1.7vw,26px)}
+.folio-canvas,.living-folio .research-card,.folio-spine{min-width:0}
+.living-folio .folio-canvas :is(.reading-pane,.quran-card),.living-folio .research-card{border-radius:0;box-shadow:none}
+.folio-spine{position:sticky;top:105px;border-inline-end:1px solid var(--folio-edge);padding-inline-end:10px;color:var(--muted);max-height:65vh;overflow:auto}
+.folio-spine h4{margin:17px 0 4px}
+.surah-dossier{display:flex;align-items:center;gap:14px;border-block-end:2px solid var(--folio-metal);padding:6px 0 12px}
+.surah-dossier h2,.surah-dossier p{margin:0}.surah-dossier p{color:var(--muted)}
+.surah-no{font:clamp(32px,4vw,62px)/1.5 'Amiri',serif;color:var(--accent)}
+.living-folio .research-card{border-inline-start:1px solid var(--folio-edge);position:sticky;top:104px;max-height:calc(100dvh - 192px);overflow:auto;padding:12px}
+.sound-ribbon{border-inline-start:2px solid var(--folio-metal);padding:9px;flex-wrap:wrap}.sound-ribbon audio{max-width:100%}
+.dock-size summary{font-size:13px}.dock-size input{width:100%}.capture-source{font-weight:700;margin-block-end:10px}
+.folio-draft textarea{width:100%}
+.living-folio.focus-reading .study-grid{display:block}.living-folio.focus-reading :is(.folio-spine,.research-card,.folio-canvas .quran-card){display:none}.living-folio.focus-reading .folio-canvas{max-width:960px;margin:auto}
+.living-folio [hidden]{display:none!important}
+@media(min-width:981px){.living-folio[data-mode=read] .folio-canvas .quran-card,.living-folio[data-mode=investigate] .folio-canvas .reading-pane{margin-block-start:12px}.living-folio .folio-modes{inset:auto auto 15px 20px;transform:none}}
+@media(max-width:980px){.living-folio main{padding-bottom:100px}.living-folio .study-grid{display:block}.living-folio .folio-spine{display:none}.living-folio .research-card{position:static;max-height:none}.living-folio[data-mode=read] .research-card{display:none}.living-folio[data-mode=investigate] .research-card{position:fixed;inset:auto 0 calc(60px + env(safe-area-inset-bottom));z-index:7;max-height:var(--sheet-size,46dvh);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:12px 16px;overscroll-behavior:contain}.living-folio[data-mode=investigate] .folio-canvas{padding-bottom:43vh}.living-folio[data-mode=investigate] .dock-size{display:none}.folio-modes{bottom:max(4px,env(safe-area-inset-bottom));width:min(96vw,460px);justify-content:space-evenly}.folio-modes button{min-width:0;flex:1}.folio-modes .mobile-trail{display:block}.living-folio[data-view=reader] .folio-spine.spine-open{display:block;position:fixed;inset:auto 3vw 75px;z-index:9;background:var(--panel);max-height:45vh;padding:16px;border:1px solid var(--line);border-radius:16px;box-shadow:0 4px 12px #0002}.living-folio .compact-folio .eyebrow,.living-folio.compact-folio .topbar .eyebrow{display:none}}
+@media(max-width:650px){.living-folio .mansour-home:not([hidden]){grid-template-columns:minmax(0,1fr);gap:20px}.living-folio .welcome-copy,.living-folio .folio-recent,.living-folio .welcome-art{grid-column:auto;grid-row:auto}.living-folio .welcome-art{order:3}.living-folio .welcome-copy .home-verse{max-height:8em}.folio-location{max-width:50%;font-size:12px}.living-folio .study-nav{flex:1 1 65%;width:auto}.living-folio .study-nav button{min-width:0;padding-inline:5px}.living-folio .study-nav button:nth-child(3){display:none}.living-folio .topbar{margin-bottom:12px}.living-folio .research-card .tafsir-columns{display:block}}
+@media(prefers-reduced-motion:no-preference){.living-folio .folio-modes button,.living-folio .capture-source{transition:background-color var(--folio-duration) var(--folio-ease),border-color var(--folio-duration) var(--folio-ease)}.folio-recent button:focus-visible,.capture-source:focus-visible{outline-offset:3px}}
+.sheet-grip{display:none}@media(max-width:980px){.sheet-grip{display:block;touch-action:none;min-height:44px;width:100%;margin:0 0 8px}}
+.lexical-observatory>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}.lexical-observatory article{border-inline-start:2px solid var(--folio-metal);padding-inline-start:12px}.lexical-observatory article button{display:block;width:100%;text-align:start;border:0;border-block-end:1px solid var(--line);border-radius:0}.lexical-observatory progress{width:100%;accent-color:var(--accent)}.search-preview{padding-inline-start:16px;border-inline-start:2px solid var(--folio-metal)}.search-preview p{max-height:24vh;overflow:auto;white-space:pre-wrap}.nb-paper{border-block-start:2px solid var(--folio-metal)}#nb-preview p:has(+h3){margin-block-end:20px}
+.living-folio #toast{bottom:calc(77px + env(safe-area-inset-bottom));pointer-events:none;max-width:min(92vw,460px)}.living-folio .topbar .top-actions button{min-height:44px}.living-folio .topbar .top-actions{gap:3px}.folio-location:focus-visible,.folio-modes button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media print{.folio-modes,.folio-controls,.folio-spine,.dock-size,.folio-location{display:none!important}.living-folio .study-grid{display:block}}

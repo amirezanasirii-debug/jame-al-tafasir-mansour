@@ -50,7 +50,7 @@ export function setupStudy({content,preferences:p,remember,selected,go,view,load
   };
   const back=()=>{const opened=document.querySelector('dialog[open]');if(opened){opened.close();return true}
     if($('tools-drawer').open||!$('search-results').hidden)return originalBack();
-    if(!$('home').hidden)return false;view('home');return true};
+    if(window.mansourFolioBack)return window.mansourFolioBack();if(!$('home').hidden)return false;view('home');return true};
   window.jameBack=back;
   button(bar,'خانه',()=>view('home'));button(bar,'بازگشت',back);button(bar,'انتخاب سوره و آیه',openJump);const appearance=document.createElement('dialog');appearance.className='verse-dialog';appearance.setAttribute('aria-label','تنظیمات سریع مطالعه');document.body.append(appearance);
   const openAppearance=()=>{appearance.replaceChildren();const h=document.createElement('h2');h.textContent='تنظیمات سریع مطالعه';appearance.append(h);
@@ -117,14 +117,18 @@ export function setupStudy({content,preferences:p,remember,selected,go,view,load
   }
   setupCompare();
   async function setupCompare(){
-    const block=document.createElement('details');block.innerHTML='<summary>مقایسهٔ دو ریشه</summary><form><label>ریشهٔ اول<input required></label><label>ریشهٔ دوم<input required></label><button>مقایسه</button></form><div></div>';
-    $('words-search').before(block);const out=block.lastElementChild;let request=0;
+    const block=document.createElement('details');block.innerHTML='<summary>مقایسهٔ واژه‌ها و ریشه‌ها</summary><form><label>واژه یا ریشهٔ اول<input required></label><label>واژه یا ریشهٔ دوم<input required></label><button>مقایسه</button></form><div></div>';
+    block.className='lexical-observatory';$('words-search').before(block);const out=block.lastElementChild;let request=0;
     block.querySelector('form').onsubmit=async e=>{e.preventDefault();const ticket=++request;out.textContent='در حال مقایسه…';
-      try{const roots=await load('kalemat/roots.json');const inputs=Array.from(block.querySelectorAll('input'),i=>normalize(i.value).replace(/\s/g,''));
-        const cols=await Promise.all(inputs.map(async q=>{const root=roots.find(r=>normalize(r.root).replace(/\s/g,'')===q);if(!root)throw Error('ریشه پیدا نشد: '+q);return load('kalemat/roots/'+root.id+'.json')}));
+      try{const [roots,lexicon]=await Promise.all([load('kalemat/roots.json'),load('kalemat/lexicon.json')]);const inputs=Array.from(block.querySelectorAll('input'),i=>normalize(i.value).replace(/\s/g,''));
+        const cols=await Promise.all(inputs.map(async q=>{const root=roots.find(r=>normalize(r.root).replace(/\s/g,'')===q);if(root)return load('kalemat/roots/'+root.id+'.json');
+          const forms=lexicon.filter(w=>normalize(w.arabic).replace(/\s/g,'')===q);
+          if(!forms.length)throw Error('واژه یا ریشه پیدا نشد: '+q);
+          const ids=[...new Set(forms.map(w=>w.rootId).filter(Boolean))];const data=await Promise.all(ids.map(id=>load('kalemat/roots/'+id+'.json')));
+          return {display:forms[0].arabic,occurrences:data.flatMap(r=>r.occurrences.filter(o=>normalize(o.arabic).replace(/\s/g,'')===q))}}));
         if(ticket!==request)return;out.replaceChildren();let report='';
         for(const col of cols){const panel=document.createElement('article'),head=document.createElement('h3');const meccan=col.occurrences.filter(o=>content.surahs[o.surah-1].revelation==='meccan').length;
-          head.textContent=col.display+' · مکی '+fa(meccan)+' / مدنی '+fa(col.occurrences.length-meccan);report+=head.textContent+'\n';panel.append(head);
+          head.textContent=col.display+' · مکی '+fa(meccan)+' / مدنی '+fa(col.occurrences.length-meccan);report+=head.textContent+'\n';panel.append(head);const distribution=document.createElement('progress');distribution.max=col.occurrences.length||1;distribution.value=meccan;distribution.setAttribute('aria-label',head.textContent);panel.append(distribution);
           for(const o of col.occurrences.slice(0,12)){const a=byAddress.get(o.surah+':'+o.ayah);if(!a)continue;const words=a.text_original.split(' '),i=o.position-1;
             const label=words.slice(Math.max(0,i-3),i+4).join(' ')+' · '+content.surahs[o.surah-1].name_ar+' '+fa(o.ayah);report+=label+'\n';button(panel,label,()=>{view('reader');go(o.surah,o.ayah)})}out.append(panel)}
         button(out,'ارسال مقایسه به دفتر',()=>{view('notebook');$('nb-new').click();$('nb-title').value='مقایسهٔ '+cols.map(r=>r.display).join(' و ');$('nb-text').value=report;$('nb-text').dispatchEvent(new Event('input'))});

@@ -21,5 +21,6 @@ dist/*
 
 !dist/refresh.css
 !dist/study.css
+!dist/folio.css
 !dist/vendor/
 !dist/mansour-brand.png

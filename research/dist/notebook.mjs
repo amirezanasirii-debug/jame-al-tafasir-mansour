@@ -1,11 +1,18 @@
 import {matches} from './research-core.mjs';
 export const NOTEBOOK_KEY='mansour-notebook-v1';
+function citationRecord(value) {
+ if(!value||typeof value!=='object'||!Number.isInteger(value.surah)||value.surah<1||value.surah>114||!Number.isInteger(value.verse)||value.verse<1||value.verse>286||typeof value.source!=='string'||!/^([0-9]{1,8}|moyassar)$/.test(value.source)||typeof value.title!=='string')return;
+ const out={surah:value.surah,verse:value.verse,source:value.source,title:value.title.slice(0,400)};
+ for(const k of ['volume','page','edition'])if(typeof value[k]==='string'||Number.isFinite(value[k]))out[k]=String(value[k]).slice(0,160);
+ if(Number.isInteger(value.position)&&value.position>=0)out.position=value.position;
+ return out;
+}
 export function validateNotebook(value){
  if(value?.format!==NOTEBOOK_KEY||!Array.isArray(value.notes)||value.notes.length>10000)throw Error('پشتیبان دفتر معتبر نیست.');
  const ids=new Set();
  return {format:NOTEBOOK_KEY,notes:value.notes.map(n=>{
   if(typeof n.id!=='string'||!n.id||n.id.length>180||ids.has(n.id)||typeof n.title!=='string'||n.title.length>200||typeof n.text!=='string'||n.text.length>100000||typeof n.tags!=='string'||n.tags.length>500||!Number.isFinite(Date.parse(n.updatedAt)))throw Error('یک یادداشت نامعتبر در فایل وجود دارد.');
-  ids.add(n.id);return {id:n.id,title:n.title,text:n.text,tags:n.tags,updatedAt:n.updatedAt,starred:n.starred===true,archived:n.archived===true,trashed:n.trashed===true};
+  ids.add(n.id);const citation=citationRecord(n.citation);return {...(citation?{citation}:{}),id:n.id,title:n.title,text:n.text,tags:n.tags,updatedAt:n.updatedAt,starred:n.starred===true,archived:n.archived===true,trashed:n.trashed===true};
  })};
 }
 export function mergeNotebook(current,incoming){
@@ -37,6 +44,7 @@ export function createNotebook({host,toast,download,legacyNotes}){
  function noteLinks(text){
    links.replaceChildren();const add=(title,action)=>{const btn=document.createElement('button');btn.textContent=title;btn.onclick=action;links.append(btn)};
    for(const h of text.matchAll(/^#{1,3}\s+(.+)$/gm)){add(h[1],()=>{if($('nb-text').hidden){[...$('nb-preview').children].find(n=>n.tagName.startsWith('H')&&n.textContent===h[1])?.scrollIntoView({block:'center'})}else{$('nb-text').focus();$('nb-text').setSelectionRange(h.index,h.index+h[0].length)}})}
+   const source=current()?.citation;if(source)add('بازکردن منبع فیش',()=>document.dispatchEvent(new CustomEvent('mansour-open-evidence',{detail:source})));
    const title=current()?.title.trim();
    if(title)for(const n of model.notes.filter(n=>!n.trashed&&n.id!==selected&&n.text.includes('[['+title+']]')))add('ارجاع از '+(n.title||'یادداشت'),()=>open(n.id));
    for(const token of new Set(Array.from(text.matchAll(/\[\[([^\]\n]+)\]\]/g),m=>m[1]))){
@@ -46,7 +54,7 @@ export function createNotebook({host,toast,download,legacyNotes}){
    }
  }
  function preview(){const text=$('nb-text').value;noteLinks(text);$('nb-words').textContent=(text.trim()?text.trim().split(/\s+/).length:0).toLocaleString('fa-IR')+' واژه';$('nb-preview').replaceChildren();for(const line of text.split('\n')){const heading=/^(#{1,3})\s+(.*)$/.exec(line),p=document.createElement(heading?'h'+(heading[1].length+1):'p');const body=heading?heading[2]:line.replace(/^- /,'• ')||'\u00a0';for(const part of body.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)){if(part.startsWith('**')&&part.endsWith('**')){const b=document.createElement('strong');b.textContent=part.slice(2,-2);p.append(b);}else if(part.startsWith('*')&&part.endsWith('*')){const e=document.createElement('em');e.textContent=part.slice(1,-1);p.append(e);}else p.append(document.createTextNode(part));}$('nb-preview').append(p);}}
- function open(id){if(dirty)save();selected=id;const n=current();$('nb-empty').hidden=!!n;$('nb-editor').hidden=!n;if(!n){list();return;}$('nb-title').value=n.title;$('nb-text').value=n.text;$('nb-tags').value=n.tags;for(const f of ['nb-title','nb-text','nb-tags'])$(f).readOnly=n.trashed;$('nb-star').textContent=n.starred?'برداشتن نشان':'نشان کردن';$('nb-archive').textContent=n.archived?'بازگشت از بایگانی':'بایگانی';for(const f of ['nb-star','nb-archive','nb-trash'])$(f).hidden=n.trashed;for(const f of ['nb-restore','nb-delete'])$(f).hidden=!n.trashed;host.querySelectorAll('[data-wrap],[data-prefix]').forEach(b=>b.disabled=n.trashed);$('nb-save').textContent=dirty?'ذخیره نشده؛ پشتیبان بگیرید.':'ذخیره‌شده روی این دستگاه';preview();list();}
+ function open(id){if(dirty)save();selected=id;if(id){try{localStorage.setItem('mansour-active-note',id)}catch{}}const n=current();$('nb-empty').hidden=!!n;$('nb-editor').hidden=!n;if(!n){list();return;}$('nb-title').value=n.title;$('nb-text').value=n.text;$('nb-tags').value=n.tags;for(const f of ['nb-title','nb-text','nb-tags'])$(f).readOnly=n.trashed;$('nb-star').textContent=n.starred?'برداشتن نشان':'نشان کردن';$('nb-archive').textContent=n.archived?'بازگشت از بایگانی':'بایگانی';for(const f of ['nb-star','nb-archive','nb-trash'])$(f).hidden=n.trashed;for(const f of ['nb-restore','nb-delete'])$(f).hidden=!n.trashed;host.querySelectorAll('[data-wrap],[data-prefix]').forEach(b=>b.disabled=n.trashed);$('nb-save').textContent=dirty?'ذخیره نشده؛ پشتیبان بگیرید.':'ذخیره‌شده روی این دستگاه';preview();list();}
  function edit(){const n=current();if(!n||n.trashed)return;Object.assign(n,{title:$('nb-title').value,text:$('nb-text').value,tags:$('nb-tags').value,updatedAt:new Date().toISOString()});dirty=true;$('nb-save').textContent='در حال ذخیره…';clearTimeout(timer);timer=setTimeout(save,350);preview();list();}
  $('nb-new').onclick=()=>{if(dirty)save();const n={id:crypto.randomUUID(),title:'',text:'',tags:'',updatedAt:new Date().toISOString(),starred:false,archived:false,trashed:false};model.notes.push(n);filter='all';$('nb-search').value='';save();open(n.id);$('nb-preview').hidden=true;$('nb-text').hidden=false;$('nb-preview-toggle').setAttribute('aria-pressed','false');$('nb-title').focus();};
  for(const id of ['nb-title','nb-text','nb-tags'])$(id).addEventListener('input',edit);
@@ -60,5 +68,19 @@ export function createNotebook({host,toast,download,legacyNotes}){
  $('nb-import').onclick=()=>$('nb-file').click();$('nb-file').onchange=async()=>{try{const file=$('nb-file').files[0];if(!file)return;if(file.size>20e6)throw Error('فایل پشتیبان بیش از ۲۰ مگابایت است.');model=mergeNotebook(model,JSON.parse(await file.text()));save();open(selected||model.notes[0]?.id);toast('پشتیبان با دفتر ادغام شد.');}catch(e){toast(e.message);}finally{$('nb-file').value='';}};
  $('nb-legacy').onclick=()=>{let count=0;for(const n of legacyNotes()){const id='verse-'+n.id;if(model.notes.some(x=>x.id===id))continue;model.notes.push({id,title:n.label||'یادداشت آیهٔ '+n.ayahId,text:n.text,tags:'یادداشت آیه',updatedAt:new Date().toISOString(),starred:false,archived:false,trashed:false});count++;}save();open(selected||model.notes[0]?.id);toast(count.toLocaleString('fa-IR')+' یادداشت آیه کپی شد؛ اصل یادداشت‌ها حفظ شد.');};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&dirty)save();});window.addEventListener('beforeunload',e=>{if(dirty&&!save()){e.preventDefault();e.returnValue='';}});
- open(model.notes.find(n=>!n.trashed)?.id);
+ const last=model.notes.find(n=>!n.trashed&&n.id===localStorage.getItem('mansour-active-note'));
+ open(last?.id||model.notes.find(n=>!n.trashed)?.id);
+ return {
+   cited:(s,v)=>model.notes.filter(n=>!n.trashed&&n.citation?.surah===s&&n.citation.verse===v),
+   recent:()=>model.notes.filter(n=>!n.trashed&&!n.archived).sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt)).slice(0,4),
+   open:id=>{if(model.notes.some(n=>n.id===id&&!n.trashed))open(id)},
+   capture({title,body,ref}) {
+     if(dirty&&!save())return;
+     const citation=citationRecord(ref);const n={...(citation?{citation}:{}),id:crypto.randomUUID(),title:title.slice(0,200),text:body,tags:'فیش منبع',updatedAt:new Date().toISOString(),starred:false,archived:false,trashed:false};
+     if(body.length>100000){toast('گزیده طولانی است. بخش کوتاه‌تری از متن را انتخاب کنید.');return}
+     model.notes.push(n);
+     if(!save()){model.notes.pop();return}
+     filter='all';$('nb-search').value='';open(n.id);return n.id;
+   }
+ };
 }
