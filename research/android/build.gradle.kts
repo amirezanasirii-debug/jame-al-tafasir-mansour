@@ -14,6 +14,7 @@ val hasReleaseSigning = listOf(
 ).all { !it.isNullOrBlank() }
 
 android {
+    bundle.language.enableSplit = false
     namespace = "org.jamealtafasir.mobile"
     compileSdk = 36
     buildToolsVersion = "36.0.0"
@@ -22,8 +23,8 @@ android {
         applicationId = "org.jamealtafasir.mobile"
         minSdk = 24
         targetSdk = 36
-        versionCode = 30200
-        versionName = "3.2.0"
+        versionCode = 30202
+        versionName = "3.2.2"
 
         vectorDrawables.useSupportLibrary = false
     }

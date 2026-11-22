@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">جامع التفاسير منصور</string>
+    <string name="webview_missing">ثبّت Android System WebView أو حدّثه لفتح منصور.</string>
+    <string name="webview_too_old">حدّث Android System WebView أو Chrome إلى الإصدار 111 أو أحدث.</string>
+    <string name="browser_missing">لا يوجد متصفح لفتح المصدر.</string>
+    <string name="page_open_failed">تعذر فتح الصفحة. أعد فتح التطبيق.</string>
+    <string name="confirm">تأكيد</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save_done">حُفظ الملف</string>
+    <string name="save_failed">تعذر حفظ الملف. حاول مجدداً.</string>
+    <string name="picker_missing">منتقي الملفات غير متاح</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Mansour Tafsir</string>
+    <string name="webview_missing">Install or update Android System WebView to open Mansour.</string>
+    <string name="webview_too_old">Update Android System WebView or Chrome to version 111 or later.</string>
+    <string name="browser_missing">No browser available to open this source.</string>
+    <string name="page_open_failed">Could not open the page. Reopen the app.</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="save_done">File saved</string>
+    <string name="save_failed">Could not save the file. Please try again.</string>
+    <string name="picker_missing">File picker unavailable</string>
+</resources>

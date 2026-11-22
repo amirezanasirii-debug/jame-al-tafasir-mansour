@@ -209,7 +209,7 @@ public final class MainActivity extends Activity {
                     } catch (RuntimeException exception) {
                         Toast.makeText(
                                 MainActivity.this,
-                                R.string.browser_missing,
+                                localizedString(R.string.browser_missing),
                                 Toast.LENGTH_SHORT
                         ).show();
                     }
@@ -226,7 +226,7 @@ public final class MainActivity extends Activity {
                 if (request.isForMainFrame()) {
                     Toast.makeText(
                             MainActivity.this,
-                            R.string.page_open_failed,
+                            localizedString(R.string.page_open_failed),
                             Toast.LENGTH_LONG
                     ).show();
                 }
@@ -240,8 +240,8 @@ public final class MainActivity extends Activity {
             public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
                 new AlertDialog.Builder(MainActivity.this)
                         .setMessage(message)
-                        .setPositiveButton("تأیید", (dialog, which) -> result.confirm())
-                        .setNegativeButton("انصراف", (dialog, which) -> result.cancel())
+                        .setPositiveButton(localizedString(R.string.confirm), (dialog, which) -> result.confirm())
+                        .setNegativeButton(localizedString(R.string.cancel), (dialog, which) -> result.cancel())
                         .setOnCancelListener(dialog -> result.cancel())
                         .show();
                 return true;
@@ -284,9 +284,9 @@ public final class MainActivity extends Activity {
                     try (OutputStream output = getContentResolver().openOutputStream(destination, "wt")) {
                         if (output == null) throw new IOException("Cannot open destination");
                         output.write(payload);
-                        runOnUiThread(() -> Toast.makeText(this, "فایل ذخیره شد", Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> Toast.makeText(this, localizedString(R.string.save_done), Toast.LENGTH_SHORT).show());
                     } catch (IOException exception) {
-                        runOnUiThread(() -> Toast.makeText(this, "ذخیرهٔ فایل انجام نشد؛ دوباره تلاش کنید", Toast.LENGTH_LONG).show());
+                        runOnUiThread(() -> Toast.makeText(this, localizedString(R.string.save_failed), Toast.LENGTH_LONG).show());
                     }
                 }, "mansour-export").start();
             }
@@ -302,7 +302,21 @@ public final class MainActivity extends Activity {
 
     // Only bundled scripts run on the synthetic HTTPS origin; remote frames and
     // network requests are blocked by the client and CSP. No arbitrary file API.
+    private String localizedString(int resource) {
+        String language = getSharedPreferences("interface", MODE_PRIVATE).getString("locale", "fa-IR");
+        android.content.res.Configuration config = new android.content.res.Configuration(getResources().getConfiguration());
+        config.setLocale(java.util.Locale.forLanguageTag(language));
+        return createConfigurationContext(config).getString(resource);
+    }
+
     private final class ExportBridge {
+        @JavascriptInterface
+        public void setInterfaceLocale(String language) {
+            if ("fa-IR".equals(language) || "ar".equals(language) || "en".equals(language)) {
+                getSharedPreferences("interface", MODE_PRIVATE).edit().putString("locale", language).apply();
+            }
+        }
+
         @JavascriptInterface
         public void saveDocument(String name, String body, String type) {
             if (body == null || body.length() > 20000000 || name == null) return;
@@ -323,7 +337,7 @@ public final class MainActivity extends Activity {
                 try { startActivityForResult(intent, 82); }
                 catch (RuntimeException exception) {
                     pendingExport = null;
-                    Toast.makeText(MainActivity.this, "انتخابگر فایل در دسترس نیست", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, localizedString(R.string.picker_missing), Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -358,7 +372,7 @@ public final class MainActivity extends Activity {
     }
     private void showFatalMessage(FrameLayout frame, int messageResource) {
         TextView message = new TextView(this);
-        message.setText(messageResource);
+        message.setText(localizedString(messageResource));
         message.setTextColor(Color.WHITE);
         message.setTextSize(20);
         message.setPadding(32, 48, 32, 32);

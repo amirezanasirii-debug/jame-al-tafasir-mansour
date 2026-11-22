@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.jamealtafasir.uitest">
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="36" />
+    <instrumentation android:name=".FolioTest" android:targetPackage="org.jamealtafasir.mobile" />
+    <application android:label="Mansour device tests" android:testOnly="true" />
+</manifest>

@@ -1,0 +1,51 @@
+/* Surfaces follow the active palette. The Qur'an canvas has no background illustration. */
+body.living-folio{--folio-paper:var(--panel);--folio-field:var(--soft);--folio-rule:var(--line);--folio-link:var(--accent);--folio-space:clamp(16px,2.6vw,40px);--folio-radius:12px;--folio-enter:180ms}
+.observatory *, .research-workspace *{min-inline-size:0}
+.living-folio .observatory:not([hidden]){display:grid;grid-template-columns:minmax(0,1.64fr) minmax(230px,.78fr);gap:var(--folio-space);padding:0 0 78px;align-items:stretch}
+.observatory-head{grid-column:1/-1;display:flex;align-items:center;gap:clamp(12px,2vw,36px);padding-block:5px 16px;border-block-end:1px solid var(--folio-rule)}
+.observatory-brand{display:flex;align-items:center;gap:12px}.observatory-brand img{width:48px;height:48px;border-radius:10px}.observatory-brand h2{font:700 clamp(20px,3vw,33px)/1.55 'Vazirmatn',sans-serif;margin:0}
+.command-line{display:flex;align-items:center;flex:1;max-inline-size:36rem;gap:4px;padding:3px;background:var(--folio-paper);border:1px solid var(--folio-rule);border-radius:10px}.command-line input{flex:1;border:0;background:transparent;width:100%;min-height:44px}.command-line button,.availability{min-height:44px}.availability{margin-inline-start:auto;background:transparent}
+.open-folio{position:relative;grid-column:1;background:var(--folio-paper);padding:clamp(20px,4.2vw,64px);border:1px solid var(--folio-rule);border-block-start:3px solid var(--folio-link);border-radius:0 0 var(--folio-radius) var(--folio-radius);align-self:start}
+.open-heading,.session-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.folio-address,.folio-resume-meta{font-size:.88rem;color:var(--muted);font-variant-numeric:tabular-nums}.jump-home{min-height:44px;border:0;background:transparent;color:var(--folio-link);text-decoration:underline;text-underline-offset:5px}
+.open-folio h2{font:700 clamp(30px,4vw,64px)/1.6 'Amiri',serif;margin:12px 0 0;color:var(--text)}.open-folio .home-verse{font:var(--qSize,32px)/2.4 'Amiri Quran','Scheherazade New',serif;color:var(--quran,var(--text));margin:12px 0;white-space:normal;overflow-wrap:normal;letter-spacing:0;max-height:14em;overflow:auto;padding-block:.18em}.folio-resume-meta{border-block-start:1px solid var(--folio-rule);padding-block:12px}.open-folio .welcome-actions{margin:6px 0 0}.open-folio .welcome-actions button{min-height:46px}
+.session-sidebar{display:flex;flex-direction:column;gap:22px;align-self:start}.session-sidebar .folio-recent,.session-sidebar .source-card{box-shadow:none;border:0;border-radius:0;border-inline-start:2px solid var(--folio-metal);padding:4px 16px 10px;background:transparent}.session-sidebar h3{font-size:1.12rem}.session-sidebar button{min-height:44px}.session-sidebar .folio-recent>button{font-size:.88rem;color:var(--folio-link)}
+.observatory .folio-atlas-wrap{grid-column:1/-1;margin:0}.observatory .folio-atlas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--folio-space);padding-block:12px}.atlas-group h4{margin:0;color:var(--muted)}.atlas-group button{display:block;width:100%}.session-footer{grid-column:1/-1;font-size:.85rem;color:var(--muted)}.session-footer .creator-line{margin:0}.session-footer button{background:transparent}
+.reader-command{display:flex;align-items:start;gap:12px;flex-wrap:wrap;border-block-end:1px solid var(--folio-rule);margin-bottom:16px}.reader-command>.reader-toolbar{flex:1;background:none;border:0;box-shadow:none}.reader-command>details{border:0;margin:0;max-width:100%}.reader-command>details[open]{flex-basis:100%;order:2}.reader-command summary,.evidence-choices summary,.verse-inspector summary,.sound-ribbon summary{cursor:pointer;min-height:44px;padding:10px;color:var(--folio-link)}
+.research-workspace .folio-canvas{background:var(--folio-paper);border:1px solid var(--folio-rule);border-radius:var(--folio-radius);padding:clamp(12px,2vw,32px)}.research-workspace .surah-dossier{border-block-end:1px solid var(--folio-rule);padding-bottom:15px}.research-workspace .reading-pane,.research-workspace .quran-card{padding-inline:0;border:0;background:none;box-shadow:none}.reading-formats,.dossier-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.reading-formats{margin:15px 0 4px}.reading-formats button,.dossier-actions button{min-height:44px}.reading-formats button{border:1px solid var(--folio-rule);border-radius:7px;background:var(--folio-paper)}.reading-formats [aria-pressed=true]{background:var(--folio-link);color:var(--folio-paper)}.dark .reading-formats [aria-pressed=true]{color:#001812}.dossier-actions button{padding:4px 7px;border:0;color:var(--folio-link);background:none}
+.verse-inspector{border-block-start:1px solid var(--folio-rule)}.verse-inspector.single-verse>summary{display:none}.research-workspace .verse-number{display:none}
+.research-workspace[data-format=continuous] .verse-row{display:contents}.research-workspace[data-format=continuous] .verse-row :is(.verse-select,.verse-study,.stream-translation){display:none}.research-workspace[data-format=continuous] .verse-row .stream-arabic{display:inline;padding:0;margin:0;line-height:2.7}.research-workspace[data-format=continuous] .verse-row.selected .stream-arabic{background:var(--highlight,var(--soft))}.research-workspace[data-format=continuous] .verse-number{display:inline-block;min-width:44px;min-height:44px;color:var(--folio-link);background:none;border:0;font-variant-numeric:tabular-nums;vertical-align:baseline;margin-inline:2px 8px}.research-workspace[data-format=continuous] #verse-stream{display:block;padding:8px;line-height:2.7}
+.dock-label{font-size:1.1rem;margin:0 0 8px;border-block-end:1px solid var(--folio-rule);padding-block:7px}.research-workspace .sound-ribbon{margin-top:18px}.research-workspace .tabs button{min-height:44px}.folio-spine .mobile-trail{display:none}
+@media(max-width:980px){.living-folio .observatory:not([hidden]){grid-template-columns:minmax(0,1.3fr) minmax(190px,.75fr)}.observatory-head{flex-wrap:wrap}.reader-command{gap:3px}.research-workspace .research-card{scroll-padding-top:48px}.sheet-grip{position:sticky;top:0;z-index:1;background:var(--folio-paper)}}
+@media(max-width:650px){.living-folio .observatory:not([hidden]){grid-template-columns:minmax(0,1fr);gap:16px}.open-folio{padding:16px}.observatory-head{gap:8px;padding:5px 0 12px}.observatory-brand img{width:36px;height:36px}.observatory-brand h2{font-size:1.18rem}.command-line{order:3;flex-basis:100%;max-inline-size:none}.availability{font-size:.77rem}.session-sidebar{gap:12px}.observatory .folio-atlas{grid-template-columns:repeat(2,minmax(0,1fr))}.dossier-actions{gap:2px}.reading-formats button,.dossier-actions button{font-size:.88rem}.research-workspace .folio-canvas{padding:12px}.session-footer{flex-wrap:wrap}}
+@media(prefers-reduced-motion:no-preference){.atlas-group,.evidence-choices[open] .compare-controls,.verse-inspector[open] .reader-actions{animation:folio-disclose var(--folio-enter) ease-out}@keyframes folio-disclose{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:none}}}
+.batch-marks{display:flex;gap:6px;flex-wrap:wrap;width:100%}.batch-marks input{min-width:120px}.batch-marks+div input[type=checkbox],#bookmarks-list input[type=checkbox]{min-width:24px;min-height:24px;vertical-align:middle}#bookmarks-list button{min-height:44px}
+@media print{.command-line,.reading-formats,.dossier-actions,.reader-command,.observatory-head .availability{display:none!important}}
+.language-switch{display:inline-flex;align-items:center;gap:.5rem;flex-wrap:wrap;font:inherit;font-size:.85rem}
+.language-switch select{min-block-size:48px;padding-inline:.5rem;min-inline-size:7rem}
+html[dir=ltr] .rail{right:auto;left:0;border-left:0;border-inline-end:1px solid var(--line)}
+html[dir=ltr] .rail nav button span{margin-left:0;margin-inline-end:12px}
+html[dir=ltr] .rail nav button,html[dir=ltr] .nb-note,html[dir=ltr] .atlas-group button{text-align:start}
+@media(min-width:1101px){html[dir=ltr] main{margin-right:0;margin-left:224px}}
+.research-workspace[data-format=continuous] #verse-stream,.stream-arabic,.quran-text,.home-verse,.surah-dossier h2{direction:rtl;text-align:right;unicode-bidi:isolate}
+.stream-translation,.source-text,.book-paper,.translation-text,#nb-preview{unicode-bidi:plaintext}
+html[dir=ltr] :is(#prev,#next,#stream-prev,#stream-next){transform:scaleX(-1)}
+.research-workspace button,.folio-modes button,.reading-formats button,.session-sidebar button,.dossier-actions button,.study-nav button,.open-folio .welcome-actions button{min-height:48px}
+@media(max-width:650px){.observatory-head .language-switch span{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%)}.observatory-head .language-switch select{min-inline-size:5.5rem}.folio-modes button{min-width:0;flex:1;padding-inline:4px}.research-workspace button{overflow-wrap:break-word}}
+
+.observatory[data-layout=commands] .folio-atlas-wrap{grid-column:1/-1;grid-row:2}
+.observatory[data-layout=commands] .open-folio,.observatory[data-layout=commands] .session-sidebar{grid-row:3}
+@media(max-width:650px){.observatory[data-layout=commands] .session-sidebar{grid-row:4}}
+@media(min-width:761px) and (max-width:1150px){html[dir=ltr] main{margin-inline-start:190px;margin-inline-end:0}}
+.verse-tool-menu{border-block-end:1px solid var(--folio-rule);margin-block:0 8px}
+.verse-tool-menu summary{padding-block:10px;cursor:pointer;color:var(--folio-link)}
+@media(max-width:760px){
+ .research-workspace .reader-command{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
+ .research-workspace .reader-command>.reader-toolbar{grid-column:1/-1;display:flex;flex-flow:row nowrap;align-items:center;padding:0}
+ .reader-command>.reader-toolbar #location,.reader-command>.reader-toolbar .toolbar-spacer{display:none}
+ .research-workspace .reader-command>details[open]{grid-column:1/-1}
+ .research-workspace .reader-command>details summary{padding:8px 2px}
+ .research-workspace .surah-dossier{padding-block:2px 6px}
+ .research-workspace .reading-formats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .research-workspace .reading-formats button{padding:4px 6px;line-height:1.45}
+ .research-workspace .reading-pane>.footnote{display:none}
+}

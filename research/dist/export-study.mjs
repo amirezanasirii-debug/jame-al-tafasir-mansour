@@ -1,10 +1,19 @@
 export async function makeWord(title, text, references = []) {
-  const {Document, Paragraph, TextRun, FootnoteReferenceRun, HeadingLevel, Packer} = await import('./vendor/docx.mjs');
+  const {Document, Paragraph, TextRun, FootnoteReferenceRun, HeadingLevel, Packer, Table, TableRow, TableCell} = await import('./vendor/docx.mjs');
   const para = (value, heading) => new Paragraph({bidirectional:true, alignment:'right', heading,
     children:[new TextRun({text:value,rightToLeft:true})]});
   const children = [para(title || 'یادداشت پژوهشی', HeadingLevel.TITLE)];
   const footnotes = {};
-  for (const line of text.split('\n')) {
+  const lines=text.split('\n');
+  const cells=line=>line.trim().replace(/^\||\|$/g,'').split('|').map(s=>s.trim());
+  for(let index=0;index<lines.length;index++){
+    const line=lines[index];
+    if(/^\s*\|.*\|\s*$/.test(line)&&index+1<lines.length&&cells(lines[index+1]).every(s=>/^:?-{3,}:?$/.test(s))){
+      const data=[cells(line)];index++;
+      while(index+1<lines.length&&/^\s*\|.*\|\s*$/.test(lines[index+1]))data.push(cells(lines[++index]));
+      const width=Math.max(...data.map(row=>row.length));children.push(new Table({visuallyRightToLeft:true,rows:data.map((row,i)=>new TableRow({tableHeader:i===0,children:Array.from({length:width},(_,j)=>new TableCell({children:[para(row[j]||'')]}))}))}));
+      continue;
+    }
     if (line.startsWith('منبع:') && line.slice(5).trim()) {
       const ref=line.slice(5).trim(), id=Object.keys(footnotes).length+1;
       footnotes[id]={children:[para(ref)]};
